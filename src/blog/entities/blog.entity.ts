@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 
 @Entity({
-  name: 'roles',
+  name: 'blogs',
 })
 export class Blog {
   @PrimaryGeneratedColumn()
@@ -26,7 +26,6 @@ export class Blog {
   content: string;
 
   @Column({
-    length: 10,
     comment: '阅读量',
   })
   visit: number;
