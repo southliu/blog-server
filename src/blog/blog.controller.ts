@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { BlogService } from './blog.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
+import { PageBlogDto } from './dto/page-blog.dto';
 
 @Controller('blog')
 export class BlogController {
@@ -23,6 +25,11 @@ export class BlogController {
   @Get()
   findAll() {
     return this.blogService.findAll();
+  }
+
+  @Get('/page')
+  findPage(@Query() pageParam: PageBlogDto) {
+    return this.blogService.findPage(pageParam);
   }
 
   @Get(':id')

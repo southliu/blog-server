@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
+import { PageBlogDto } from './dto/page-blog.dto';
 
 @Injectable()
 export class BlogService {
@@ -11,6 +12,12 @@ export class BlogService {
 
   findAll() {
     return `This action returns all blog`;
+  }
+
+  findPage(param: PageBlogDto) {
+    console.log('page:', param);
+
+    return param;
   }
 
   findOne(id: number) {
