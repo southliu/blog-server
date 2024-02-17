@@ -7,11 +7,12 @@ import {
   Param,
   Delete,
   Query,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { BlogService } from './blog.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
-import { PageBlogDto } from './dto/page-blog.dto';
+import { generateParseIntPipe } from 'src/utils/helper';
 
 @Controller('blog')
 export class BlogController {
@@ -28,8 +29,17 @@ export class BlogController {
   }
 
   @Get('/page')
-  findPage(@Query() pageParam: PageBlogDto) {
-    return this.blogService.findPage(pageParam);
+  findPage(
+    @Query('current', new DefaultValuePipe(1), generateParseIntPipe('current'))
+    current: number,
+    @Query(
+      'pageSize',
+      new DefaultValuePipe(20),
+      generateParseIntPipe('pageSize'),
+    )
+    pageSize: number,
+  ) {
+    return this.blogService.findPage({ current, pageSize });
   }
 
   @Get(':id')

@@ -4,7 +4,7 @@ export class PageBlogDto {
   @IsNotEmpty({
     message: '分页数不能为空',
   })
-  page: number;
+  current: number;
 
   @IsNotEmpty({
     message: '分页总数不能为空',

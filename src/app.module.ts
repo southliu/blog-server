@@ -28,6 +28,7 @@ import { Category } from './category/entities/category.entity';
           connectorPackage: 'mysql2',
           extra: {
             authPlugin: 'sha256_password',
+            timezone: 'Asia/Shanghai',
           },
         };
       },

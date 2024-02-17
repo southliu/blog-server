@@ -33,6 +33,6 @@ export class Blog {
   @CreateDateColumn()
   createTime: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'datetime' })
   updateTime: Date;
 }
