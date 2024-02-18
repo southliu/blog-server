@@ -1,7 +1,10 @@
+import { Category } from 'src/category/entities/category.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -33,6 +36,12 @@ export class Blog {
   @CreateDateColumn()
   createTime: Date;
 
-  @UpdateDateColumn({ type: 'datetime' })
+  @UpdateDateColumn()
   updateTime: Date;
+
+  @ManyToMany(() => Category, (category) => category.blogs)
+  @JoinTable({
+    name: 'blog_category',
+  })
+  categories: Category[];
 }
