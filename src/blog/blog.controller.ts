@@ -28,6 +28,11 @@ export class BlogController {
     return this.blogService.findAll();
   }
 
+  @Get('/createMany')
+  createMany() {
+    return this.blogService.createMany();
+  }
+
   @Get('/page')
   findPage(
     @Query('current', new DefaultValuePipe(1), generateParseIntPipe('current'))

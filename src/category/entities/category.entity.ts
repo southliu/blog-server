@@ -1,13 +1,15 @@
+import { Blog } from 'src/blog/entities/blog.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({
-  name: 'category',
+  name: 'categories',
 })
 export class Category {
   @PrimaryGeneratedColumn()
@@ -24,4 +26,7 @@ export class Category {
 
   @UpdateDateColumn()
   updateTime: Date;
+
+  @ManyToMany(() => Blog, (blog) => blog.categories)
+  blogs: Blog[];
 }
