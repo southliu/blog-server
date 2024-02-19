@@ -5,10 +5,10 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { RoleModule } from './role/role.module';
-import { BlogModule } from './blog/blog.module';
 import { CategoryModule } from './category/category.module';
-import { Blog } from './blog/entities/blog.entity';
 import { Category } from './category/entities/category.entity';
+import { ArticleModule } from './article/article.module';
+import { Article } from './article/entities/article.entity';
 
 @Module({
   imports: [
@@ -23,7 +23,7 @@ import { Category } from './category/entities/category.entity';
           database: configService.get('mysql_server_database'),
           synchronize: true,
           logging: true,
-          entities: [Blog, Category],
+          entities: [Article, Category],
           poolSize: 10,
           connectorPackage: 'mysql2',
           extra: {
@@ -40,8 +40,8 @@ import { Category } from './category/entities/category.entity';
     }),
     UserModule,
     RoleModule,
-    BlogModule,
     CategoryModule,
+    ArticleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

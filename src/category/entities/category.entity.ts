@@ -1,9 +1,9 @@
-import { Blog } from 'src/blog/entities/blog.entity';
+import { Article } from 'src/article/entities/article.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -27,6 +27,8 @@ export class Category {
   @UpdateDateColumn()
   updateTime: Date;
 
-  @ManyToMany(() => Blog, (blog) => blog.categories)
-  blogs: Blog[];
+  @OneToMany(() => Article, (article) => article.categories, {
+    cascade: true,
+  })
+  articles: Article[];
 }
