@@ -21,6 +21,12 @@ export class Category {
   })
   name: string;
 
+  @Column({
+    length: 30,
+    comment: '图标',
+  })
+  icon: string;
+
   @CreateDateColumn()
   createTime: Date;
 

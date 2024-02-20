@@ -6,7 +6,8 @@ import { Category } from 'src/category/entities/category.entity';
 import { Repository } from 'typeorm';
 import { Article } from './entities/article.entity';
 import { PageArticleDto } from './dto/page-article.dto';
-import { ArticlePageResult } from './types/page';
+import { ArticlePageVo } from './vo/page-article.vo';
+import { handleDate } from 'src/utils/helper';
 
 @Injectable()
 export class ArticleService {
@@ -28,19 +29,30 @@ export class ArticleService {
     const [list, total] = await this.articleRepository
       .createQueryBuilder('article')
       .leftJoin('article.categories', 'category')
-      .select(['article.id', 'article.title', 'category.name'])
+      .select([
+        'article.id',
+        'article.title',
+        'article.visit',
+        'article.createTime',
+        'category.id',
+        'category.icon',
+        'category.name',
+      ])
       .skip(skipCount)
       .take(pageSize)
       .getManyAndCount();
 
-    const records: ArticlePageResult[] = [];
+    const records: ArticlePageVo[] = [];
 
     for (let i = 0; i < list?.length; i++) {
       const item = list[i];
 
       const current = {
         ...item,
-        categoryName: item.categories.name,
+        date: handleDate(item.createTime),
+        categoryId: item.categories?.id,
+        categoryName: item.categories?.name,
+        categoryIcon: item.categories?.icon,
       };
       delete current.categories;
 
@@ -67,9 +79,11 @@ export class ArticleService {
 
     const t1 = new Category();
     t1.name = 'ttt1111';
+    t1.icon = 'bx:category';
 
     const t2 = new Category();
     t2.name = 'ttt2222';
+    t2.icon = 'bx:category';
 
     a1.categories = t1;
     a2.categories = t2;

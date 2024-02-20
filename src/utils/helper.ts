@@ -7,3 +7,21 @@ export function generateParseIntPipe(name: string) {
     },
   });
 }
+
+export function handleDate(date: Date, split = '/') {
+  const currentDate = new Date(date);
+
+  const year = currentDate.getFullYear(); //年份
+  const month = currentDate.getMonth() + 1; // 月份
+  const dates = currentDate.getDate(); // 日
+
+  let hour: number | string = currentDate.getHours(); // 时
+  hour = hour > 9 ? hour : '0' + hour;
+  let minutes: number | string = currentDate.getMinutes(); // 分
+  minutes = minutes > 9 ? minutes : '0' + minutes;
+  let seconds: number | string = currentDate.getSeconds(); // 秒
+  seconds = seconds > 9 ? seconds : '0' + seconds;
+
+  // 结果：今天是:2022年10月16日 星期日
+  return `${year}${split}${month}${dates} ${hour}:${minutes}:${seconds}`;
+}

@@ -16,9 +16,9 @@ export class CategoryService {
   }
 
   async findAll() {
-    const result = this.categoryRepository
+    const result = await this.categoryRepository
       .createQueryBuilder()
-      .select(['id', 'name'])
+      .select(['id', 'name', 'icon'])
       .getRawMany();
 
     return result;
