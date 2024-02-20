@@ -1,9 +1,9 @@
-import { Blog } from 'src/blog/entities/blog.entity';
+import { Article } from 'src/article/entities/article.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -21,12 +21,20 @@ export class Category {
   })
   name: string;
 
+  @Column({
+    length: 30,
+    comment: '图标',
+  })
+  icon: string;
+
   @CreateDateColumn()
   createTime: Date;
 
   @UpdateDateColumn()
   updateTime: Date;
 
-  @ManyToMany(() => Blog, (blog) => blog.categories)
-  blogs: Blog[];
+  @OneToMany(() => Article, (article) => article.categories, {
+    cascade: true,
+  })
+  articles: Article[];
 }

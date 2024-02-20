@@ -3,16 +3,15 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({
-  name: 'blogs',
+  name: 'articles',
 })
-export class Blog {
+export class Article {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -39,9 +38,8 @@ export class Blog {
   @UpdateDateColumn()
   updateTime: Date;
 
-  @ManyToMany(() => Category, (category) => category.blogs)
-  @JoinTable({
-    name: 'blog_category',
+  @ManyToOne(() => Category, (category) => category.articles, {
+    onDelete: 'CASCADE',
   })
-  categories: Category[];
+  categories: Category;
 }

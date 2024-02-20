@@ -1,16 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Category } from './entities/category.entity';
 
 @Injectable()
 export class CategoryService {
+  @InjectRepository(Category)
+  private categoryRepository: Repository<Category>;
+
   create(createCategoryDto: CreateCategoryDto) {
     console.log('createCategoryDto:', createCategoryDto);
     return 'This action adds a new category';
   }
 
-  findAll() {
-    return `This action returns all category`;
+  async findAll() {
+    const result = await this.categoryRepository
+      .createQueryBuilder()
+      .select(['id', 'name', 'icon'])
+      .getRawMany();
+
+    return result;
   }
 
   findOne(id: number) {

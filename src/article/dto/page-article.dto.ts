@@ -1,6 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 
-export class PageBlogDto {
+export class PageArticleDto {
   @IsNotEmpty({
     message: '分页数不能为空',
   })
