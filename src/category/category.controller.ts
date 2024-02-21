@@ -25,6 +25,11 @@ export class CategoryController {
     return this.categoryService.findAll();
   }
 
+  @Get('/top')
+  getTopCategory() {
+    return this.categoryService.getTopCategory();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.categoryService.findOne(+id);

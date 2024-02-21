@@ -42,6 +42,11 @@ export class ArticleController {
     return this.articleService.findPage({ current, pageSize });
   }
 
+  @Get('/top')
+  getTopArticle() {
+    return this.articleService.getTopArticle();
+  }
+
   @Get('/createMany')
   createMany() {
     return this.articleService.createMany();

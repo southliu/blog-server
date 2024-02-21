@@ -28,6 +28,18 @@ export class CategoryService {
     return `This action returns a #${id} category`;
   }
 
+  getTopCategory() {
+    const list = this.categoryRepository
+      .createQueryBuilder()
+      .select(['id', 'name'])
+      .skip(1)
+      .take(10)
+      .addOrderBy('createTime', 'DESC')
+      .getRawMany();
+
+    return list;
+  }
+
   update(id: number, updateCategoryDto: UpdateCategoryDto) {
     console.log('updateCategoryDto:', updateCategoryDto);
     return `This action updates a #${id} category`;

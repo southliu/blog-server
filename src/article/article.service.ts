@@ -65,15 +65,28 @@ export class ArticleService {
     };
   }
 
+  getTopArticle() {
+    const list = this.articleRepository
+      .createQueryBuilder()
+      .select(['id', 'title', 'visit'])
+      .skip(1)
+      .take(5)
+      .addOrderBy('visit', 'DESC')
+      .addOrderBy('createTime', 'DESC')
+      .getRawMany();
+
+    return list;
+  }
+
   // 添加数据
   async createMany() {
     const a1 = new Article();
-    a1.title = 'aaaa';
+    a1.title = '333333';
     a1.content = 'aaaaaaaaaa';
     a1.visit = 1;
 
     const a2 = new Article();
-    a2.title = 'bbbbbb';
+    a2.title = '44444444';
     a2.content = 'bbbbbbbbbb';
     a2.visit = 1;
 
