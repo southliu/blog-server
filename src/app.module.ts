@@ -9,6 +9,11 @@ import { CategoryModule } from './category/category.module';
 import { Category } from './category/entities/category.entity';
 import { ArticleModule } from './article/article.module';
 import { Article } from './article/entities/article.entity';
+import { PermissionModule } from './permission/permission.module';
+import { Role } from './role/entities/role.entity';
+import { User } from './user/entities/user.entity';
+import { Permission } from './permission/entities/permission.entity';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -23,7 +28,7 @@ import { Article } from './article/entities/article.entity';
           database: configService.get('mysql_server_database'),
           synchronize: true,
           logging: true,
-          entities: [Article, Category],
+          entities: [Article, Category, Role, User, Permission],
           poolSize: 10,
           connectorPackage: 'mysql2',
           extra: {
@@ -42,6 +47,8 @@ import { Article } from './article/entities/article.entity';
     RoleModule,
     CategoryModule,
     ArticleModule,
+    PermissionModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService],
