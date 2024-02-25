@@ -1,4 +1,5 @@
 import { BadRequestException, ParseIntPipe } from '@nestjs/common';
+import * as crypto from 'crypto';
 
 export function generateParseIntPipe(name: string) {
   return new ParseIntPipe({
@@ -24,4 +25,10 @@ export function handleDate(date: Date, split = '/') {
 
   // 结果：今天是:2022年10月16日 星期日
   return `${year}${split}${month}${dates} ${hour}:${minutes}:${seconds}`;
+}
+
+export function md5(str: string) {
+  const hash = crypto.createHash('md5');
+  hash.update(str);
+  return hash.digest('hex');
 }

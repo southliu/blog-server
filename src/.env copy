@@ -4,6 +4,7 @@ redis_server_port=6379
 redis_server_db=1
 
 # nodemailer 相关配置
+nodemailer_title=邮件标题
 nodemailer_host=smtp.qq.com
 nodemailer_port=587
 nodemailer_auth_user=邮箱地址
