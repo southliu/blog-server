@@ -23,6 +23,12 @@ export class User {
   username: string;
 
   @Column({
+    length: 50,
+    comment: '密码',
+  })
+  password: string;
+
+  @Column({
     name: 'nick_name',
     length: 50,
     comment: '昵称',
