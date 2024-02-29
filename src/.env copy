@@ -21,6 +21,6 @@ mysql_server_database=meeting_room_booking_system
 nest_server_port=3100
 
 # jwt 配置
-jwt_secret=south
+jwt_secret=blog
 jwt_access_token_expires_time=30m
 jwt_refresh_token_expires_time=7d
