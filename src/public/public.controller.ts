@@ -3,6 +3,7 @@ import { EmailService } from 'src/email/email.service';
 import { RedisService } from 'src/redis/redis.service';
 import { PublicService } from './public.service';
 import { RegisterDto } from './dot/register.dto';
+import { LoginDto } from './dot/login.dto';
 
 @Controller('')
 export class PublicController {
@@ -32,10 +33,7 @@ export class PublicController {
   }
 
   @Post('login')
-  login(
-    @Body('username') username: string,
-    @Body('password') password: string,
-  ) {
-    return this.publicService.login(username, password);
+  login(@Body() loginUser: LoginDto) {
+    return this.publicService.login(loginUser);
   }
 }

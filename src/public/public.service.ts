@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { md5 } from 'src/utils/helper';
 import { UserService } from 'src/user/user.service';
+import { LoginDto } from './dot/login.dto';
 
 @Injectable()
 export class PublicService {
@@ -57,13 +58,13 @@ export class PublicService {
     }
   }
 
-  async login(username: string, password: string) {
-    console.log('username:', username);
-    console.log('password:', password);
+  async login(loginDto: LoginDto) {
+    console.log('username:', loginDto.username);
+    console.log('password:', loginDto.password);
 
     const user = this.userRepository.findOne({
       where: {
-        username,
+        username: loginDto.username,
       },
     });
 
