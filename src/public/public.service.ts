@@ -47,7 +47,6 @@ export class PublicService {
     newUser.username = user.username;
     newUser.password = md5(user.password);
     newUser.email = user.email;
-    newUser.nickName = user.nickName;
 
     try {
       await this.userRepository.save(newUser);
@@ -59,9 +58,6 @@ export class PublicService {
   }
 
   async login(loginDto: LoginDto) {
-    console.log('username:', loginDto.username);
-    console.log('password:', loginDto.password);
-
     const user = this.userRepository.findOne({
       where: {
         username: loginDto.username,
