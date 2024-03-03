@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { md5 } from 'src/utils/helper';
 import { UserService } from 'src/user/user.service';
+import { LoginDto } from './dot/login.dto';
 
 @Injectable()
 export class PublicService {
@@ -46,7 +47,6 @@ export class PublicService {
     newUser.username = user.username;
     newUser.password = md5(user.password);
     newUser.email = user.email;
-    newUser.nickName = user.nickName;
 
     try {
       await this.userRepository.save(newUser);
@@ -57,13 +57,10 @@ export class PublicService {
     }
   }
 
-  async login(username: string, password: string) {
-    console.log('username:', username);
-    console.log('password:', password);
-
+  async login(loginDto: LoginDto) {
     const user = this.userRepository.findOne({
       where: {
-        username,
+        username: loginDto.username,
       },
     });
 
