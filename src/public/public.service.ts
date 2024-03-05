@@ -1,10 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { RegisterDto } from './dot/register.dto';
 import { RedisService } from 'src/redis/redis.service';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,6 +7,9 @@ import { User } from 'src/user/entities/user.entity';
 import { md5 } from 'src/utils/helper';
 import { UserService } from 'src/user/user.service';
 import { LoginDto } from './dot/login.dto';
+import { BaseException } from 'src/utils/exception';
+import { EmailService } from 'src/email/email.service';
+import { EmailDto } from 'src/email/dto/email.dto';
 
 @Injectable()
 export class PublicService {
@@ -24,15 +21,37 @@ export class PublicService {
   @InjectRepository(User)
   private userRepository: Repository<User>;
 
+  @Inject(EmailService)
+  private emailService: EmailService;
+
+  async getRegister(emailDto: EmailDto) {
+    const { email } = emailDto;
+    const foundEmail = await this.userRepository.findOneBy({ email });
+    if (foundEmail) {
+      throw new BaseException('邮箱已存在', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    const code = Math.random().toString().slice(2, 8);
+    await this.redisService.set(`captcha_${email}`, code, 5 * 60);
+
+    await this.emailService.sendMail({
+      to: email,
+      subject: '注册验证码',
+      html: `<p>你的注册验证码是 ${code}</p>`,
+    });
+
+    return '发送成功';
+  }
+
   async register(user: RegisterDto) {
     const captcha = await this.redisService.get(`captcha_${user.email}`);
 
     if (!captcha) {
-      throw new HttpException('验证码已失效', HttpStatus.BAD_REQUEST);
+      throw new BaseException('验证码已失效', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     if (user.captcha !== captcha) {
-      throw new HttpException('验证码不正确', HttpStatus.BAD_REQUEST);
+      throw new BaseException('验证码不正确', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     const foundUser = await this.userRepository.findOneBy({
@@ -40,13 +59,14 @@ export class PublicService {
     });
 
     if (foundUser) {
-      throw new HttpException('用户已存在', HttpStatus.BAD_REQUEST);
+      throw new BaseException('用户已存在', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     const newUser = new User();
     newUser.username = user.username;
     newUser.password = md5(user.password);
     newUser.email = user.email;
+    newUser.nickName = `游客_${Math.floor(Math.random() * 10000)}`;
 
     try {
       await this.userRepository.save(newUser);

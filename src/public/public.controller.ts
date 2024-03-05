@@ -1,30 +1,16 @@
-import { Controller, Get, Post, Body, Query, Inject } from '@nestjs/common';
-import { EmailService } from 'src/email/email.service';
-import { RedisService } from 'src/redis/redis.service';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { PublicService } from './public.service';
 import { RegisterDto } from './dot/register.dto';
 import { LoginDto } from './dot/login.dto';
+import { EmailDto } from 'src/email/dto/email.dto';
 
 @Controller('')
 export class PublicController {
-  @Inject(EmailService)
-  private emailService: EmailService;
-
-  @Inject(RedisService)
-  private redisService: RedisService;
-
   constructor(private readonly publicService: PublicService) {}
 
   @Get('register-captcha')
-  async captcha(@Query('address') address: string) {
-    const code = Math.random().toString().slice(2, 8);
-    await this.redisService.set(`captcha_${address}`, code, 5 * 60);
-
-    await this.emailService.sendMail({
-      to: address,
-      subject: '注册验证码',
-      html: `<p>你的注册验证码是 ${code}</p>`,
-    });
+  async captcha(@Query() emailDto: EmailDto) {
+    return this.publicService.getRegister(emailDto);
   }
 
   @Post('register')
