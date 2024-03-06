@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { PublicService } from './public.service';
-import { RegisterDto } from './dot/register.dto';
-import { LoginDto } from './dot/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 import { EmailDto } from 'src/email/dto/email.dto';
 
 @Controller('')
