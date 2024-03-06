@@ -1,15 +1,16 @@
 import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
-import { RegisterDto } from './dot/register.dto';
+import { RegisterDto } from './dto/register.dto';
 import { RedisService } from 'src/redis/redis.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { md5 } from 'src/utils/helper';
 import { UserService } from 'src/user/user.service';
-import { LoginDto } from './dot/login.dto';
+import { LoginDto } from './dto/login.dto';
 import { BaseException } from 'src/utils/exception';
 import { EmailService } from 'src/email/email.service';
 import { EmailDto } from 'src/email/dto/email.dto';
+import { Role } from 'src/role/entities/role.entity';
 
 @Injectable()
 export class PublicService {
@@ -20,6 +21,9 @@ export class PublicService {
 
   @InjectRepository(User)
   private userRepository: Repository<User>;
+
+  @InjectRepository(Role)
+  private roleRepository: Repository<Role>;
 
   @Inject(EmailService)
   private emailService: EmailService;
@@ -62,11 +66,18 @@ export class PublicService {
       throw new BaseException('用户已存在', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    const foundRole = await this.roleRepository.findOne({
+      where: {
+        id: 2,
+      },
+    });
+
     const newUser = new User();
     newUser.username = user.username;
     newUser.password = md5(user.password);
     newUser.email = user.email;
     newUser.nickName = `游客_${Math.floor(Math.random() * 10000)}`;
+    newUser.roles = [foundRole];
 
     try {
       await this.userRepository.save(newUser);
@@ -78,12 +89,24 @@ export class PublicService {
   }
 
   async login(loginDto: LoginDto) {
-    const user = this.userRepository.findOne({
+    const user = await this.userRepository.findOne({
       where: {
         username: loginDto.username,
       },
+      relations: ['roles', 'roles.permissions'],
     });
 
-    return user;
+    return {
+      ...user,
+      roles: user.roles.map((item) => item.name),
+      permissions: user.roles.reduce((arr, item) => {
+        item.permissions.forEach((permission) => {
+          if (arr.indexOf(permission) === -1) {
+            arr.push(permission.code);
+          }
+        });
+        return arr;
+      }, []),
+    };
   }
 }
