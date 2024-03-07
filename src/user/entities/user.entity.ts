@@ -46,14 +46,14 @@ export class User {
     length: 100,
     nullable: true,
   })
-  headPic: string;
+  avatar: string;
 
   @Column({
     comment: '手机号',
     length: 20,
     nullable: true,
   })
-  phoneNumber: string;
+  phone: string;
 
   @Column({
     comment: '是否冻结',
