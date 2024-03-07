@@ -1,6 +1,7 @@
 import {
   CallHandler,
   ExecutionContext,
+  HttpStatus,
   Injectable,
   Logger,
   NestInterceptor,
@@ -44,10 +45,15 @@ export class FormatResponseInterceptor implements NestInterceptor {
           )
         ) {
           const message = '收件人可能包含不存在的帐户，请检查收件人地址';
-          return throwError(() => new BaseException(message, 500));
+          return throwError(
+            () => new BaseException(message, HttpStatus.INTERNAL_SERVER_ERROR),
+          );
         }
 
-        return throwError(() => new BaseException(err.response, 500));
+        return throwError(
+          () =>
+            new BaseException(err.response, HttpStatus.INTERNAL_SERVER_ERROR),
+        );
       }),
     );
   }

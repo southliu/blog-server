@@ -11,6 +11,7 @@ import { BaseException } from 'src/utils/exception';
 import { EmailService } from 'src/email/email.service';
 import { EmailDto } from 'src/email/dto/email.dto';
 import { Role } from 'src/role/entities/role.entity';
+import { LoginVo } from './vo/login.vo';
 
 @Injectable()
 export class PublicService {
@@ -96,17 +97,30 @@ export class PublicService {
       relations: ['roles', 'roles.permissions'],
     });
 
-    return {
-      ...user,
-      roles: user.roles.map((item) => item.name),
-      permissions: user.roles.reduce((arr, item) => {
-        item.permissions.forEach((permission) => {
-          if (arr.indexOf(permission) === -1) {
-            arr.push(permission.code);
-          }
-        });
-        return arr;
-      }, []),
+    const vo = new LoginVo();
+
+    vo.roles = user.roles.map((item) => item.name);
+
+    vo.userInfo = {
+      id: user.id,
+      username: user.username,
+      nickName: user.nickName,
+      email: user.email,
+      phone: user.phone,
+      avatar: user.avatar,
+      isFrozen: user.isFrozen,
+      isAdmin: user.isAdmin,
     };
+
+    vo.permissions = user.roles.reduce((arr, item) => {
+      item.permissions.forEach((permission) => {
+        if (arr.indexOf(permission) === -1) {
+          arr.push(permission.code);
+        }
+      });
+      return arr;
+    }, []);
+
+    return vo;
   }
 }

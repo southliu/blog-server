@@ -32,6 +32,38 @@ export class UserService {
     return `This action returns a #${id} user`;
   }
 
+  async findUserById(userId: number, isAdmin?: boolean) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+        isAdmin: isAdmin ?? false,
+      },
+      relations: ['roles', 'roles.permissions'],
+    });
+
+    return {
+      ...user,
+      roles: user.roles.map((item) => item.name),
+      permissions: user.roles.reduce((arr, item) => {
+        item.permissions.forEach((permission) => {
+          if (arr.indexOf(permission) === -1) {
+            arr.push(permission);
+          }
+        });
+        return arr;
+      }, []),
+    };
+  }
+
+  update(id: number, updateUserDto: UpdateUserDto) {
+    console.log('updateUserDto:', updateUserDto);
+    return `This action updates a #${id} user`;
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} user`;
+  }
+
   async initData() {
     const user1 = new User();
     user1.username = 'south';
@@ -39,7 +71,7 @@ export class UserService {
     user1.email = 'xxx@xx.com';
     user1.isAdmin = true;
     user1.nickName = '张三';
-    user1.phoneNumber = '13233323333';
+    user1.phone = '13233323333';
 
     const user2 = new User();
     user2.username = 'lisa';
@@ -70,14 +102,5 @@ export class UserService {
     await this.permissionRepository.save([permission1, permission2]);
     await this.roleRepository.save([role1, role2]);
     await this.userRepository.save([user1, user2]);
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    console.log('updateUserDto:', updateUserDto);
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
   }
 }
