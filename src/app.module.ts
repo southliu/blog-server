@@ -20,6 +20,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { LoginGuard } from './guard/login.guard';
 import { PermissionGuard } from './guard/permission.guard';
+import { MenuModule } from './menu/menu.module';
+import { Menu } from './menu/entities/menu.entity';
 
 @Module({
   imports: [
@@ -34,7 +36,7 @@ import { PermissionGuard } from './guard/permission.guard';
           database: configService.get('mysql_server_database'),
           synchronize: true,
           logging: true,
-          entities: [Article, Category, Role, User, Permission],
+          entities: [Article, Category, Role, User, Menu, Permission],
           poolSize: 10,
           connectorPackage: 'mysql2',
           extra: {
@@ -69,6 +71,7 @@ import { PermissionGuard } from './guard/permission.guard';
     RedisModule,
     EmailModule,
     PublicModule,
+    MenuModule,
   ],
   controllers: [AppController],
   providers: [
