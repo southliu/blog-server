@@ -1,10 +1,7 @@
-import { Permission } from 'src/permission/entities/permission.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -26,14 +23,16 @@ export class Menu {
   @Column({
     length: 50,
     comment: '路由',
+    nullable: true,
   })
-  route?: string;
+  route: string;
 
   @Column({
     length: 50,
     comment: '图标',
+    nullable: true,
   })
-  icon?: string;
+  icon: string;
 
   @Column({
     comment: '排序',
@@ -59,11 +58,5 @@ export class Menu {
   @ManyToOne(() => Menu, {
     cascade: true,
   })
-  pId: Menu;
-
-  @ManyToMany(() => Permission)
-  @JoinTable({
-    name: 'menu_permissions',
-  })
-  permissions: Permission[];
+  parentId: Menu;
 }
