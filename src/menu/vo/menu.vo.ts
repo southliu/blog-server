@@ -1,4 +1,4 @@
-export class MenuVo {
+export interface MenuVo {
   id: number;
   name: string;
   route?: string;
@@ -7,5 +7,6 @@ export class MenuVo {
   enable: boolean;
   type: number;
   permission: string;
-  parentId: string;
+  parentId?: number;
+  children?: MenuVo[];
 }

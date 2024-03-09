@@ -14,7 +14,10 @@ import { EmailDto } from 'src/email/dto/email.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
-import { RequirePermission } from 'src/decorator/custom.decorator';
+import {
+  RequireLogin,
+  RequirePermission,
+} from 'src/decorator/custom.decorator';
 
 @Controller('')
 export class PublicController {
@@ -71,6 +74,7 @@ export class PublicController {
   }
 
   @Get('refresh')
+  @RequireLogin()
   async refresh(@Query('refreshToken') oldRefreshToken: string) {
     try {
       const data = this.jwtService.verify(oldRefreshToken);

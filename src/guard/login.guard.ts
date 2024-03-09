@@ -62,7 +62,7 @@ export class LoginGuard implements CanActivate {
       return true;
     } catch (e) {
       throw new BaseException(
-        'token 失效，请重新登录',
+        'token失效，请重新登录',
         HttpStatus.UNAUTHORIZED,
       );
     }
