@@ -25,12 +25,6 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @Get('init-data')
-  async initData() {
-    await this.userService.initData();
-    return 'success';
-  }
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);

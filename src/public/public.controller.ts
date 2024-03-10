@@ -77,4 +77,9 @@ export class PublicController {
       throw new UnauthorizedException('token 已失效，请重新登录');
     }
   }
+
+  @Get('init-data')
+  async initData() {
+    return this.publicService.initData();
+  }
 }
