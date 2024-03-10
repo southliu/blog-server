@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -55,8 +56,17 @@ export class Menu {
   @UpdateDateColumn()
   updateTime: Date;
 
-  @ManyToOne(() => Menu, {
+  @Column({
+    nullable: true,
+  })
+  parentId: number;
+
+  @ManyToOne(() => Menu, (menu) => menu.children, {
     cascade: true,
   })
-  parentId: Menu;
+  parent: Menu;
+
+  // 如果有子菜单的话，也需要定义关联
+  @OneToMany(() => Menu, (menu) => menu.parent)
+  children: Menu[];
 }

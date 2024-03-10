@@ -89,14 +89,7 @@ export class PublicService {
     }
   }
 
-  async login(loginDto: LoginDto) {
-    const user = await this.userRepository.findOne({
-      where: {
-        username: loginDto.username,
-      },
-      relations: ['roles', 'roles.permissions'],
-    });
-
+  private handleLoginVo(user: User) {
     const vo = new LoginVo();
 
     vo.roles = user.roles.map((item) => item.name);
@@ -122,5 +115,28 @@ export class PublicService {
     }, []);
 
     return vo;
+  }
+
+  async login(loginDto: LoginDto) {
+    const user = await this.userRepository.findOne({
+      where: {
+        username: loginDto.username,
+        password: loginDto.password,
+      },
+      relations: ['roles', 'roles.permissions'],
+    });
+
+    return this.handleLoginVo(user);
+  }
+
+  async refresh(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+      relations: ['roles', 'roles.permissions'],
+    });
+
+    return this.handleLoginVo(user);
   }
 }
