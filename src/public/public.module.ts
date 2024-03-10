@@ -6,9 +6,10 @@ import { User } from 'src/user/entities/user.entity';
 import { Role } from 'src/role/entities/role.entity';
 import { UserService } from 'src/user/user.service';
 import { Permission } from 'src/permission/entities/permission.entity';
+import { Menu } from 'src/menu/entities/menu.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Role, Permission])],
+  imports: [TypeOrmModule.forFeature([User, Role, Menu, Permission])],
   controllers: [PublicController],
   providers: [PublicService, UserService],
 })

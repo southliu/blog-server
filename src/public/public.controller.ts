@@ -5,6 +5,7 @@ import {
   Body,
   Query,
   Inject,
+  Req,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PublicService } from './public.service';
@@ -18,6 +19,7 @@ import {
   RequireLogin,
   RequirePermission,
 } from 'src/decorator/custom.decorator';
+import { Request } from 'express';
 
 @Controller('')
 export class PublicController {
@@ -60,55 +62,24 @@ export class PublicController {
       },
     );
 
-    vo.refreshToken = this.jwtService.sign(
-      {
-        userId: vo.userInfo.id,
-      },
-      {
-        expiresIn:
-          this.configService.get('jwt_refresh_token_expires_time') || '7d',
-      },
-    );
-
     return vo;
   }
 
   @Get('refresh')
   @RequireLogin()
-  async refresh(@Query('refreshToken') oldRefreshToken: string) {
+  async refresh(@Req() request: Request) {
     try {
-      const data = this.jwtService.verify(oldRefreshToken);
-      const user = await this.userService.findUserById(data.userId);
-
-      const token = this.jwtService.sign(
-        {
-          userId: user.id,
-          username: user.username,
-          roles: user.roles,
-          permissions: user.permissions,
-        },
-        {
-          expiresIn:
-            this.configService.get('jwt_access_token_expires_time') || '30m',
-        },
-      );
-
-      const refreshToken = this.jwtService.sign(
-        {
-          userId: user.id,
-        },
-        {
-          expiresIn:
-            this.configService.get('jwt_refresh_token_expires_time') || '7d',
-        },
-      );
-
-      return {
-        token,
-        refreshToken,
-      };
+      const authorization = request.headers?.authorization;
+      const token = authorization?.split(' ')?.[1];
+      const data = this.jwtService.verify(token);
+      return this.publicService.refresh(data.userId);
     } catch (e) {
       throw new UnauthorizedException('token 已失效，请重新登录');
     }
+  }
+
+  @Get('init-data')
+  async initData() {
+    return this.publicService.initData();
   }
 }

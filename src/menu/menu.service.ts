@@ -13,8 +13,28 @@ export class MenuService {
   @InjectRepository(User)
   private userRepository: Repository<User>;
 
+  @InjectRepository(Menu)
+  private menuRepository: Repository<Menu>;
+
   create(createMenuDto: CreateMenuDto) {
     return 'This action adds a new menu';
+  }
+
+  private buildTree(menus: MenuVo[], parentId: number): MenuVo[] {
+    const tree: MenuVo[] = [];
+
+    for (const menu of menus) {
+      console.log('menu:', menu);
+      if (menu.parentId === parentId) {
+        const children = this.buildTree(menus, menu.id);
+        if (children.length) {
+          menu.children = children;
+        }
+        tree.push(menu);
+      }
+    }
+
+    return tree;
   }
 
   async findAll(userId: number) {
@@ -25,8 +45,7 @@ export class MenuService {
       relations: ['roles.permissions', 'roles.permissions.menus'],
     });
 
-    const menus: Menu[] = [];
-    const result: MenuVo[] = [];
+    const menus: MenuVo[] = [];
 
     for (let i = 0; i < findUser.roles?.length; i++) {
       for (let j = 0; j < findUser.roles[i]?.permissions?.length; j++) {
@@ -36,12 +55,22 @@ export class MenuService {
           k++
         ) {
           const item = findUser.roles[i].permissions[j].menus[k];
-          menus.push(item);
+          menus.push({
+            id: item.id,
+            name: item.name,
+            route: item.route,
+            icon: item.icon,
+            sortNum: item.sortNum,
+            enable: item.enable,
+            type: item.type,
+            permission: findUser.roles[i]?.permissions?.[j]?.code,
+            parentId: item.parentId,
+          });
         }
       }
     }
 
-    return menus;
+    return this.buildTree(menus, null);
   }
 
   findOne(id: number) {

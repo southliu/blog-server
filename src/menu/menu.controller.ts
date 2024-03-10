@@ -14,6 +14,7 @@ import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
 import { RequireLogin } from 'src/decorator/custom.decorator';
 import { JwtService } from '@nestjs/jwt';
+import { Request } from 'express';
 
 @Controller('menu')
 @RequireLogin()
@@ -29,7 +30,7 @@ export class MenuController {
   }
 
   @Get('list')
-  findAll(@Req() request: any) {
+  findAll(@Req() request: Request) {
     const authorization = request.headers?.authorization;
     const token = authorization?.split(' ')?.[1];
     const data = this.jwtService.verify(token);

@@ -12,7 +12,6 @@ interface UserInfo {
 export class LoginVo {
   userInfo: UserInfo;
   token: string;
-  refreshToken: string;
   roles: string[];
   permissions: string[];
 }

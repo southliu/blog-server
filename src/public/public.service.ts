@@ -12,6 +12,8 @@ import { EmailService } from 'src/email/email.service';
 import { EmailDto } from 'src/email/dto/email.dto';
 import { Role } from 'src/role/entities/role.entity';
 import { LoginVo } from './vo/login.vo';
+import { Menu } from 'src/menu/entities/menu.entity';
+import { Permission } from 'src/permission/entities/permission.entity';
 
 @Injectable()
 export class PublicService {
@@ -25,6 +27,12 @@ export class PublicService {
 
   @InjectRepository(Role)
   private roleRepository: Repository<Role>;
+
+  @InjectRepository(Menu)
+  private menuRepository: Repository<Menu>;
+
+  @InjectRepository(Permission)
+  private permissionRepository: Repository<Permission>;
 
   @Inject(EmailService)
   private emailService: EmailService;
@@ -89,17 +97,11 @@ export class PublicService {
     }
   }
 
-  async login(loginDto: LoginDto) {
-    const user = await this.userRepository.findOne({
-      where: {
-        username: loginDto.username,
-      },
-      relations: ['roles', 'roles.permissions'],
-    });
-
+  private handleLoginVo(user: User) {
     const vo = new LoginVo();
+    if (!user) return vo;
 
-    vo.roles = user.roles.map((item) => item.name);
+    vo.roles = user?.roles?.map((item) => item.name);
 
     vo.userInfo = {
       id: user.id,
@@ -122,5 +124,126 @@ export class PublicService {
     }, []);
 
     return vo;
+  }
+
+  async login(loginDto: LoginDto) {
+    const user = await this.userRepository.findOne({
+      where: {
+        username: loginDto.username,
+        password: loginDto.password,
+      },
+      relations: ['roles', 'roles.permissions'],
+    });
+
+    return this.handleLoginVo(user);
+  }
+
+  async refresh(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+      relations: ['roles', 'roles.permissions'],
+    });
+
+    return this.handleLoginVo(user);
+  }
+
+  async initData() {
+    const user1 = new User();
+    user1.username = 'south';
+    user1.password = md5('south123456');
+    user1.email = 'xxx@xx.com';
+    user1.isAdmin = true;
+    user1.nickName = '管理员';
+
+    const user2 = new User();
+    user2.username = 'admin';
+    user2.password = md5('admin123456');
+    user2.email = 'yy@yy.com';
+    user2.nickName = '游客-south';
+
+    const role1 = new Role();
+    role1.id = 1;
+    role1.name = '管理员';
+
+    const role2 = new Role();
+    role2.id = 2;
+    role2.name = '普通用户';
+
+    const menu1 = new Menu();
+    menu1.id = 1;
+    menu1.type = 0;
+    menu1.sortNum = 1;
+    menu1.name = '系统管理';
+    menu1.enable = true;
+
+    const menu2 = new Menu();
+    menu2.id = 2;
+    menu2.type = 1;
+    menu2.sortNum = 1;
+    menu2.name = '菜单管理';
+    menu2.enable = true;
+    menu2.route = '/system/menu';
+    menu2.parentId = 1;
+
+    const menu3 = new Menu();
+    menu3.type = 2;
+    menu3.sortNum = 1;
+    menu3.name = '菜单管理-查看';
+    menu3.enable = true;
+    menu3.route = '/system/menu/index';
+    menu3.parentId = 2;
+
+    const menu4 = new Menu();
+    menu4.type = 2;
+    menu4.sortNum = 2;
+    menu4.name = '菜单管理-新增';
+    menu4.enable = true;
+    menu4.route = '/system/menu/create';
+    menu4.parentId = 2;
+
+    const permission1 = new Permission();
+    permission1.code = '/system';
+    permission1.description = '系统管理权限';
+
+    const permission2 = new Permission();
+    permission2.code = '/system/menu';
+    permission2.description = '菜单管理权限';
+
+    const permission3 = new Permission();
+    permission3.code = '/system/menu/index';
+    permission3.description = '查看菜单权限';
+
+    const permission4 = new Permission();
+    permission4.code = '/system/menu/create';
+    permission4.description = '新增菜单权限';
+
+    user1.roles = [role1];
+    user2.roles = [role2];
+
+    role1.permissions = [permission1, permission2, permission3, permission4];
+    role2.permissions = [permission1, permission2, permission3, permission4];
+
+    permission1.menus = [menu1];
+    permission2.menus = [menu2];
+    permission3.menus = [menu3];
+    permission4.menus = [menu4];
+
+    menu2.parent = menu1;
+    menu3.parent = menu2;
+    menu4.parent = menu2;
+
+    await this.menuRepository.save([menu1, menu2, menu3, menu4]);
+    await this.permissionRepository.save([
+      permission1,
+      permission2,
+      permission3,
+      permission4,
+    ]);
+    await this.roleRepository.save([role1, role2]);
+    await this.userRepository.save([user1, user2]);
+
+    return 'success';
   }
 }
