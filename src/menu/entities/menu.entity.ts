@@ -42,6 +42,8 @@ export class Menu {
 
   @Column({
     comment: '是否启用',
+    nullable: true,
+    default: true,
   })
   enable: boolean;
 

@@ -192,7 +192,6 @@ export class PublicService {
     menu3.sortNum = 1;
     menu3.name = '菜单管理-查看';
     menu3.enable = true;
-    menu3.route = '/system/menu/index';
     menu3.parentId = 2;
 
     const menu4 = new Menu();
@@ -200,7 +199,6 @@ export class PublicService {
     menu4.sortNum = 2;
     menu4.name = '菜单管理-新增';
     menu4.enable = true;
-    menu4.route = '/system/menu/create';
     menu4.parentId = 2;
 
     const permission1 = new Permission();

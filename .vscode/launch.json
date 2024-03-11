@@ -12,7 +12,7 @@
         "<node_internals>/**",
       ],
       "console": "integratedTerminal",
-      "runtimeExecutable": "npm",
+      "runtimeExecutable": "pnpm",
       "runtimeArgs": [
         "run-script",
         "start:dev"
