@@ -25,17 +25,18 @@ export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
   @Post()
-  create(@Body() createMenuDto: CreateMenuDto) {
-    return this.menuService.create(createMenuDto);
+  create(@Body() createMenuDto: CreateMenuDto, @Req() request: Request) {
+    return this.menuService.create(createMenuDto, request);
+  }
+
+  @Get('userMenu')
+  findUserMenu(@Req() request: Request) {
+    return this.menuService.findUserMenu(request);
   }
 
   @Get('list')
   findAll(@Req() request: Request) {
-    const authorization = request.headers?.authorization;
-    const token = authorization?.split(' ')?.[1];
-    const data = this.jwtService.verify(token);
-
-    return this.menuService.findAll(data.userId);
+    return this.menuService.findAll(request);
   }
 
   @Get(':id')

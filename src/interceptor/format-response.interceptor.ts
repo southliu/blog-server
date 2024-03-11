@@ -52,7 +52,10 @@ export class FormatResponseInterceptor implements NestInterceptor {
 
         return throwError(
           () =>
-            new BaseException(err.response, HttpStatus.INTERNAL_SERVER_ERROR),
+            new BaseException(
+              err.response || err,
+              HttpStatus.INTERNAL_SERVER_ERROR,
+            ),
         );
       }),
     );

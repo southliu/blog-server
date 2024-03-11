@@ -47,22 +47,26 @@ export class PublicController {
   @Post('login')
   @RequirePermission('ddd')
   async login(@Body() loginUser: LoginDto) {
-    const vo = await this.publicService.login(loginUser);
+    try {
+      const vo = await this.publicService.login(loginUser);
 
-    vo.token = this.jwtService.sign(
-      {
-        userId: vo.userInfo.id,
-        username: vo.userInfo.username,
-        roles: vo.roles,
-        permissions: vo.permissions,
-      },
-      {
-        expiresIn:
-          this.configService.get('jwt_access_token_expires_time') || '30m',
-      },
-    );
+      vo.token = this.jwtService.sign(
+        {
+          userId: vo.userInfo.id,
+          username: vo.userInfo.username,
+          roles: vo.roles,
+          permissions: vo.permissions,
+        },
+        {
+          expiresIn:
+            this.configService.get('jwt_access_token_expires_time') || '30m',
+        },
+      );
 
-    return vo;
+      return vo;
+    } catch (e) {
+      throw '登录失败';
+    }
   }
 
   @Get('refresh')
