@@ -166,13 +166,64 @@ export class MenuService {
     return this.buildTree(menus, null);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} menu`;
+  async findOne(id: number) {
+    try {
+      const findMenu = await this.menuRepository.findOne({
+        where: {
+          id,
+        },
+        relations: ['permissions'],
+      });
+
+      const menuVo: MenuVo = {
+        id: findMenu.id,
+        name: findMenu.name,
+        route: findMenu.route,
+        icon: findMenu.icon,
+        sortNum: findMenu.sortNum,
+        enable: findMenu.enable,
+        type: findMenu.type,
+        parentId: findMenu.parentId || 0,
+        permission: findMenu.permissions?.map((item) => item.code)?.join(','),
+      };
+
+      return menuVo;
+    } catch (e) {
+      throw '获取详情失败';
+    }
   }
 
-  update(id: number, updateMenuDto: UpdateMenuDto) {
-    console.log('updateMenuDto:', updateMenuDto);
-    return `This action updates a #${id} menu`;
+  async update(id: number, updateMenuDto: UpdateMenuDto) {
+    try {
+      console.log('updateMenuDto:', updateMenuDto);
+      // const findMenu = await this.menuRepository.findOne({
+      //   where: {
+      //     id,
+      //   },
+      //   relations: ['permissions'],
+      // });
+
+      // const menuVo: MenuVo = {
+      //   id: updateMenuDto.id,
+      //   name: updateMenuDto.name,
+      //   route: updateMenuDto.route,
+      //   icon: updateMenuDto.icon,
+      //   sortNum: updateMenuDto.sortNum,
+      //   enable: updateMenuDto.enable,
+      //   type: updateMenuDto.type,
+      //   parentId: updateMenuDto.parentId || 0,
+      //   permission: updateMenuDto.permissions,
+      // };
+
+      await this.menuRepository.save({
+        ...updateMenuDto,
+        id,
+      });
+
+      return '编辑成功';
+    } catch (e) {
+      throw '编辑失败';
+    }
   }
 
   remove(id: number) {
