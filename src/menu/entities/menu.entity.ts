@@ -1,7 +1,10 @@
+import { Permission } from 'src/permission/entities/permission.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -71,4 +74,10 @@ export class Menu {
   // 如果有子菜单的话，也需要定义关联
   @OneToMany(() => Menu, (menu) => menu.parent)
   children: Menu[];
+
+  @ManyToMany(() => Permission)
+  @JoinTable({
+    name: 'menu_permissions',
+  })
+  permissions: Permission[];
 }
