@@ -5,9 +5,9 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
-  ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
+  TreeChildren,
+  TreeParent,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -61,19 +61,11 @@ export class Menu {
   @UpdateDateColumn()
   updateTime: Date;
 
-  @Column({
-    nullable: true,
-  })
-  parentId: number;
-
-  @ManyToOne(() => Menu, (menu) => menu.children, {
-    cascade: true,
-  })
-  parent: Menu;
-
-  // 如果有子菜单的话，也需要定义关联
-  @OneToMany(() => Menu, (menu) => menu.parent)
+  @TreeChildren()
   children: Menu[];
+
+  @TreeParent()
+  parent: Menu;
 
   @ManyToMany(() => Permission)
   @JoinTable({
