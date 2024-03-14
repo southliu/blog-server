@@ -34,7 +34,9 @@ export class PermissionGuard implements CanActivate {
 
     for (let i = 0; i < requiredPermissions.length; i++) {
       const curPermission = requiredPermissions[i];
-      const found = permissions.find((item) => item.code === curPermission);
+      const found = permissions.find(
+        (item) => (item.code || item) === curPermission,
+      );
       if (!found) {
         throw new BaseException(
           '您没有访问该接口的权限',

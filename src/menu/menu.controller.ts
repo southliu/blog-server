@@ -3,28 +3,31 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  Put,
   Param,
   Delete,
   Req,
-  Inject,
+  Query,
 } from '@nestjs/common';
 import { MenuService } from './menu.service';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
-import { RequireLogin } from 'src/decorator/custom.decorator';
-import { JwtService } from '@nestjs/jwt';
+import {
+  RequireLogin,
+  RequirePermission,
+} from 'src/decorator/custom.decorator';
 import { Request } from 'express';
+
+// 权限前缀
+const permissionPrefix = '/system/menu';
 
 @Controller('menu')
 @RequireLogin()
 export class MenuController {
-  @Inject(JwtService)
-  private jwtService: JwtService;
-
   constructor(private readonly menuService: MenuService) {}
 
   @Post()
+  @RequirePermission(`${permissionPrefix}/create`)
   create(@Body() createMenuDto: CreateMenuDto, @Req() request: Request) {
     return this.menuService.create(createMenuDto, request);
   }
@@ -35,21 +38,25 @@ export class MenuController {
   }
 
   @Get('list')
-  findAll(@Req() request: Request) {
-    return this.menuService.findAll(request);
+  @RequirePermission(`${permissionPrefix}/index`)
+  findAll(@Req() request: Request, @Query('name') name: string) {
+    return this.menuService.findAll(request, name);
   }
 
   @Get(':id')
+  @RequirePermission(`${permissionPrefix}/index`)
   findOne(@Param('id') id: string) {
     return this.menuService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Put(':id')
+  @RequirePermission(`${permissionPrefix}/update`)
   update(@Param('id') id: string, @Body() updateMenuDto: UpdateMenuDto) {
     return this.menuService.update(+id, updateMenuDto);
   }
 
   @Delete(':id')
+  @RequirePermission(`${permissionPrefix}/delete`)
   remove(@Param('id') id: string) {
     return this.menuService.remove(+id);
   }

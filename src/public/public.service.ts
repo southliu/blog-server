@@ -185,21 +185,18 @@ export class PublicService {
     menu2.name = '菜单管理';
     menu2.enable = true;
     menu2.route = '/system/menu';
-    menu2.parentId = 1;
 
     const menu3 = new Menu();
     menu3.type = 2;
     menu3.sortNum = 1;
     menu3.name = '菜单管理-查看';
     menu3.enable = true;
-    menu3.parentId = 2;
 
     const menu4 = new Menu();
     menu4.type = 2;
     menu4.sortNum = 2;
     menu4.name = '菜单管理-新增';
     menu4.enable = true;
-    menu4.parentId = 2;
 
     const permission1 = new Permission();
     permission1.code = '/system';
