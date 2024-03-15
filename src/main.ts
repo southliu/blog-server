@@ -1,9 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
-import { ValidationPipe } from './pipe/validation.pipe';
-import { FormatResponseInterceptor } from './interceptor/format-response.interceptor';
-import { InvokeRecordInterceptor } from './interceptor/invoke-record.interceptor';
+import { ValidationPipe } from './base/pipe/validation.pipe';
+import { FormatResponseInterceptor } from './base/interceptor/format-response.interceptor';
+import { InvokeRecordInterceptor } from './base/interceptor/invoke-record.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

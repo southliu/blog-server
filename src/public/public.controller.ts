@@ -14,8 +14,8 @@ import { LoginDto } from './dto/login.dto';
 import { EmailDto } from 'src/email/dto/email.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { UserService } from 'src/user/user.service';
-import { RequireLogin } from 'src/decorator/custom.decorator';
+import { UserService } from 'src/systems/user/user.service';
+import { RequireLogin } from 'src/base/decorator/custom.decorator';
 import { Request } from 'express';
 
 @Controller('')

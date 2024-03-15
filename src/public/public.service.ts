@@ -1,19 +1,19 @@
 import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
-import { RedisService } from 'src/redis/redis.service';
+import { RedisService } from 'src/base/redis/redis.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from 'src/user/entities/user.entity';
+import { User } from 'src/systems/user/entities/user.entity';
 import { md5 } from 'src/utils/helper';
-import { UserService } from 'src/user/user.service';
+import { UserService } from 'src/systems/user/user.service';
 import { LoginDto } from './dto/login.dto';
 import { BaseException } from 'src/utils/exception';
 import { EmailService } from 'src/email/email.service';
 import { EmailDto } from 'src/email/dto/email.dto';
-import { Role } from 'src/role/entities/role.entity';
+import { Role } from 'src/systems/role/entities/role.entity';
 import { LoginVo } from './vo/login.vo';
-import { Menu } from 'src/menu/entities/menu.entity';
-import { Permission } from 'src/permission/entities/permission.entity';
+import { Menu } from 'src/systems/menu/entities/menu.entity';
+import { Permission } from 'src/systems/permission/entities/permission.entity';
 
 @Injectable()
 export class PublicService {
@@ -198,6 +198,12 @@ export class PublicService {
     menu4.name = '菜单管理-新增';
     menu4.enable = true;
 
+    const menu5 = new Menu();
+    menu5.type = 2;
+    menu5.sortNum = 2;
+    menu5.name = '菜单管理-删除';
+    menu5.enable = true;
+
     const permission1 = new Permission();
     permission1.code = '/system';
     permission1.description = '系统管理权限';
@@ -214,6 +220,10 @@ export class PublicService {
     permission4.code = '/system/menu/create';
     permission4.description = '新增菜单权限';
 
+    const permission5 = new Permission();
+    permission5.code = '/system/menu/delete';
+    permission5.description = '删除菜单权限';
+
     user1.roles = [role1];
     user2.roles = [role2];
 
@@ -224,17 +234,20 @@ export class PublicService {
     permission2.menus = [menu2];
     permission3.menus = [menu3];
     permission4.menus = [menu4];
+    permission5.menus = [menu5];
 
     menu2.parent = menu1;
     menu3.parent = menu2;
     menu4.parent = menu2;
+    menu5.parent = menu2;
 
-    await this.menuRepository.save([menu1, menu2, menu3, menu4]);
+    await this.menuRepository.save([menu1, menu2, menu3, menu4, menu5]);
     await this.permissionRepository.save([
       permission1,
       permission2,
       permission3,
       permission4,
+      permission5,
     ]);
     await this.roleRepository.save([role1, role2]);
     await this.userRepository.save([user1, user2]);

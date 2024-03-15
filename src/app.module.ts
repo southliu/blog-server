@@ -3,25 +3,25 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { UserModule } from './user/user.module';
-import { RoleModule } from './role/role.module';
+import { UserModule } from './systems/user/user.module';
+import { RoleModule } from './systems/role/role.module';
 import { CategoryModule } from './category/category.module';
 import { Category } from './category/entities/category.entity';
 import { ArticleModule } from './article/article.module';
 import { Article } from './article/entities/article.entity';
-import { PermissionModule } from './permission/permission.module';
-import { Role } from './role/entities/role.entity';
-import { User } from './user/entities/user.entity';
-import { Permission } from './permission/entities/permission.entity';
-import { RedisModule } from './redis/redis.module';
+import { PermissionModule } from './systems/permission/permission.module';
+import { Role } from './systems/role/entities/role.entity';
+import { User } from './systems/user/entities/user.entity';
+import { Permission } from './systems/permission/entities/permission.entity';
+import { RedisModule } from './base/redis/redis.module';
 import { EmailModule } from './email/email.module';
 import { PublicModule } from './public/public.module';
 import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
-import { LoginGuard } from './guard/login.guard';
-import { PermissionGuard } from './guard/permission.guard';
-import { MenuModule } from './menu/menu.module';
-import { Menu } from './menu/entities/menu.entity';
+import { LoginGuard } from './base/guard/login.guard';
+import { PermissionGuard } from './base/guard/permission.guard';
+import { MenuModule } from './systems/menu/menu.module';
+import { Menu } from './systems/menu/entities/menu.entity';
 
 @Module({
   imports: [
