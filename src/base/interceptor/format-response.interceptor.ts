@@ -36,7 +36,7 @@ export class FormatResponseInterceptor implements NestInterceptor {
         };
       }),
       catchError((err: ErrorData) => {
-        this.logger.error(err.response, err.stack);
+        this.logger.error(err.response || err, err.stack);
 
         // 邮箱处理
         if (

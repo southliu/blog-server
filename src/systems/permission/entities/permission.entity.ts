@@ -1,4 +1,5 @@
-import { Menu } from 'src/menu/entities/menu.entity';
+import { Menu } from 'src/systems/menu/entities/menu.entity';
+import { Role } from 'src/systems/role/entities/role.entity';
 import {
   Column,
   Entity,
@@ -26,9 +27,12 @@ export class Permission {
   })
   description: string;
 
+  @ManyToMany(() => Role, (roles) => roles.permissions)
+  roles: Role[];
+
   @ManyToMany(() => Menu)
   @JoinTable({
-    name: 'menu_permissions',
+    name: 'permission_menus',
   })
   menus: Menu[];
 }

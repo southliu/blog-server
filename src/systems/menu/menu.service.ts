@@ -3,13 +3,13 @@ import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
-import { User } from 'src/user/entities/user.entity';
+import { User } from 'src/systems/user/entities/user.entity';
 import { Menu } from './entities/menu.entity';
 import { MenuVo } from './vo/menu.vo';
-import { Permission } from 'src/permission/entities/permission.entity';
+import { Permission } from 'src/systems/permission/entities/permission.entity';
 import { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { Role } from 'src/role/entities/role.entity';
+import { Role } from 'src/systems/role/entities/role.entity';
 
 @Injectable()
 export class MenuService {
@@ -86,6 +86,9 @@ export class MenuService {
         tree.push(menu);
       }
     }
+
+    // 排序
+    tree.sort((a, b) => a.sortNum - b.sortNum);
 
     return tree;
   }
@@ -188,14 +191,19 @@ export class MenuService {
 
       return menuVo;
     } catch (e) {
-      throw '获取详情失败';
+      throw e || '获取详情失败';
     }
   }
 
   async create(createMenuDto: CreateMenuDto, request: Request) {
     try {
+      const roles = await this.getRoles(request);
+      if (!roles?.length) throw '获取角色数据失败';
+
       const menu = new Menu();
       menu.name = createMenuDto.name;
+      menu.route = createMenuDto.route;
+      menu.icon = createMenuDto.icon;
       menu.type = Number(createMenuDto.type);
       menu.sortNum = Number(createMenuDto.sortNum);
 
@@ -207,7 +215,7 @@ export class MenuService {
             id: parentId,
           },
         });
-        if (!parent) return '当前父级菜单不存在!';
+        if (!parent) throw '当前父级菜单不存在!';
         menu.parent = parent;
       }
 
@@ -215,21 +223,19 @@ export class MenuService {
       permission.code = createMenuDto.permission;
       permission.description = createMenuDto.name;
 
-      permission.menus = [menu];
-
-      const roles = await this.getRoles(request);
       for (let i = 0; i < roles?.length; i++) {
         const item = roles[i];
         item.permissions.push(permission);
       }
 
-      await this.menuRepository.save([menu]);
-      await this.permissionRepository.save([permission]);
+      permission.menus = [menu];
+      await this.menuRepository.save(menu);
+      await this.permissionRepository.save(permission);
       await this.roleRepository.save(roles);
 
       return roles;
     } catch (e) {
-      throw '新增失败';
+      throw e || '新增失败';
     }
   }
 
@@ -255,19 +261,24 @@ export class MenuService {
 
       return '编辑成功';
     } catch (e) {
-      throw '编辑失败';
+      throw e || '编辑失败';
     }
   }
 
   async remove(id: number) {
     try {
-      const existing = await this.menuRepository.findOne({ where: { id } });
-      if (!existing) throw '当前菜单不存在或已删除';
-
+      const findMenu = await this.menuRepository.findOne({
+        where: { id },
+        relations: ['permissions'],
+      });
+      if (!findMenu?.permissions?.length) throw '当前菜单不存在或已删除';
+      if (findMenu.permissions?.[0]?.id) {
+        await this.permissionRepository.delete(findMenu.permissions?.[0]?.id);
+      }
       await this.menuRepository.delete(id);
       return '删除成功';
     } catch (e) {
-      throw '删除失败，请稍后重试';
+      throw e || '删除失败，请稍后重试';
     }
   }
 }

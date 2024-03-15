@@ -9,19 +9,19 @@ import {
   Req,
   Query,
 } from '@nestjs/common';
-import { MenuService } from './menu.service';
+import { MenuService } from './/menu.service';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
 import {
   RequireLogin,
   RequirePermission,
-} from 'src/decorator/custom.decorator';
+} from 'src/base/decorator/custom.decorator';
 import { Request } from 'express';
 
 // 权限前缀
 const permissionPrefix = '/system/menu';
 
-@Controller('menu')
+@Controller('/system/menu')
 @RequireLogin()
 export class MenuController {
   constructor(private readonly menuService: MenuService) {}

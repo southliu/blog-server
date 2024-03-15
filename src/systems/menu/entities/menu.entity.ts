@@ -1,9 +1,8 @@
-import { Permission } from 'src/permission/entities/permission.entity';
+import { Permission } from 'src/systems/permission/entities/permission.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
   ManyToMany,
   PrimaryGeneratedColumn,
   TreeChildren,
@@ -67,9 +66,6 @@ export class Menu {
   @TreeParent()
   parent: Menu;
 
-  @ManyToMany(() => Permission)
-  @JoinTable({
-    name: 'menu_permissions',
-  })
+  @ManyToMany(() => Permission, (permissions) => permissions.menus)
   permissions: Permission[];
 }

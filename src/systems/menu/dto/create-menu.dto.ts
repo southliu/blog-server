@@ -25,4 +25,7 @@ export class CreateMenuDto {
     message: '父级ID不能为空',
   })
   parentId: number;
+
+  route: string;
+  icon: string;
 }
