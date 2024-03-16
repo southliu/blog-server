@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinTable,
   ManyToMany,
   PrimaryGeneratedColumn,
   TreeChildren,
@@ -67,5 +68,8 @@ export class Menu {
   parent: Menu;
 
   @ManyToMany(() => Permission, (permissions) => permissions.menus)
+  @JoinTable({
+    name: 'permission_menus',
+  })
   permissions: Permission[];
 }

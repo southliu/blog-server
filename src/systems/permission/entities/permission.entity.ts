@@ -1,3 +1,4 @@
+import { MaxLength } from 'class-validator';
 import { Menu } from 'src/systems/menu/entities/menu.entity';
 import { Role } from 'src/systems/role/entities/role.entity';
 import {
@@ -16,8 +17,11 @@ export class Permission {
   id: number;
 
   @Column({
-    length: 20,
+    length: 100,
     comment: '权限代码',
+  })
+  @MaxLength(100, {
+    message: '权限代码长度过长',
   })
   code: string;
 
@@ -28,6 +32,9 @@ export class Permission {
   description: string;
 
   @ManyToMany(() => Role, (roles) => roles.permissions)
+  @JoinTable({
+    name: 'role_permissions',
+  })
   roles: Role[];
 
   @ManyToMany(() => Menu)
