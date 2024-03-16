@@ -276,6 +276,10 @@ export class MenuService {
 
   async update(id: number, updateMenuDto: UpdateMenuDto) {
     try {
+      if (updateMenuDto.permission?.length > 50) {
+        throw '权限字段过长';
+      }
+
       const findMenu = await this.menuRepository.findOne({
         where: {
           id,
