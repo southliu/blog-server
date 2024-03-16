@@ -12,6 +12,8 @@ import { EmailService } from 'src/email/email.service';
 import { EmailDto } from 'src/email/dto/email.dto';
 import { Role } from 'src/systems/role/entities/role.entity';
 import { LoginVo } from './vo/login.vo';
+import { Menu } from 'src/systems/menu/entities/menu.entity';
+import { Permission } from 'src/systems/permission/entities/permission.entity';
 
 @Injectable()
 export class PublicService {
@@ -28,6 +30,12 @@ export class PublicService {
 
   @Inject(EmailService)
   private emailService: EmailService;
+
+  @InjectRepository(Menu)
+  private menuRepository: Repository<Menu>;
+
+  @InjectRepository(Permission)
+  private permissionRepository: Repository<Permission>;
 
   async getRegister(emailDto: EmailDto) {
     const { email } = emailDto;
@@ -139,5 +147,130 @@ export class PublicService {
     });
 
     return this.handleLoginVo(user);
+  }
+
+  async initData() {
+    const user1 = new User();
+    user1.username = 'south';
+    user1.password = md5('south123456');
+    user1.email = 'xxx@xx.com';
+    user1.isAdmin = true;
+    user1.nickName = '管理员';
+
+    const user2 = new User();
+    user2.username = 'admin';
+    user2.password = md5('admin123456');
+    user2.email = 'yy@yy.com';
+    user2.nickName = '游客-south';
+
+    const role1 = new Role();
+    role1.id = 1;
+    role1.name = '管理员';
+
+    const role2 = new Role();
+    role2.id = 2;
+    role2.name = '普通用户';
+
+    user1.roles = [role1];
+    user2.roles = [role2];
+
+    const menu1 = new Menu();
+    menu1.id = 1;
+    menu1.type = 0;
+    menu1.sortNum = 1;
+    menu1.name = '系统管理';
+    menu1.enable = true;
+
+    const menu2 = new Menu();
+    menu2.id = 2;
+    menu2.type = 1;
+    menu2.sortNum = 1;
+    menu2.name = '菜单管理';
+    menu2.enable = true;
+    menu2.route = '/systems/menu';
+
+    const menu3 = new Menu();
+    menu3.type = 2;
+    menu3.sortNum = 1;
+    menu3.name = '菜单管理-查看';
+    menu3.enable = true;
+
+    const menu4 = new Menu();
+    menu4.type = 2;
+    menu4.sortNum = 2;
+    menu4.name = '菜单管理-新增';
+    menu4.enable = true;
+
+    const menu5 = new Menu();
+    menu5.type = 2;
+    menu5.sortNum = 3;
+    menu5.name = '菜单管理-编辑';
+    menu5.enable = true;
+
+    const menu6 = new Menu();
+    menu6.type = 2;
+    menu6.sortNum = 4;
+    menu6.name = '菜单管理-删除';
+    menu6.enable = true;
+
+    const permission1 = new Permission();
+    permission1.code = '/system';
+    permission1.description = '系统管理权限';
+
+    const permission2 = new Permission();
+    permission2.code = '/system/menu';
+    permission2.description = '菜单管理权限';
+
+    const permission3 = new Permission();
+    permission3.code = '/system/menu/index';
+    permission3.description = '查看菜单权限';
+
+    const permission4 = new Permission();
+    permission4.code = '/system/menu/create';
+    permission4.description = '新增菜单权限';
+
+    const permission5 = new Permission();
+    permission5.code = '/system/menu/update';
+    permission5.description = '编辑菜单权限';
+
+    const permission6 = new Permission();
+    permission6.code = '/system/menu/delete';
+    permission6.description = '删除菜单权限';
+
+    role2.permissions = [
+      permission1,
+      permission2,
+      permission3,
+      permission4,
+      permission5,
+      permission6,
+    ];
+
+    permission1.menus = [menu1];
+    permission2.menus = [menu2];
+    permission3.menus = [menu3];
+    permission4.menus = [menu4];
+    permission5.menus = [menu5];
+    permission6.menus = [menu6];
+
+    menu2.parent = menu1;
+    menu3.parent = menu2;
+    menu4.parent = menu2;
+    menu5.parent = menu2;
+    menu6.parent = menu2;
+
+    await this.menuRepository.save([menu1, menu2, menu3, menu4, menu5, menu6]);
+    await this.permissionRepository.save([
+      permission1,
+      permission2,
+      permission3,
+      permission4,
+      permission5,
+      permission6,
+    ]);
+    await this.roleRepository.save([role1, role2]);
+    await this.userRepository.save([user1, user2]);
+
+    return 'success';
   }
 }

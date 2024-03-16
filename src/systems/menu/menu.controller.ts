@@ -57,7 +57,7 @@ export class MenuController {
 
   @Delete(':id')
   @RequirePermission(`${permissionPrefix}/delete`)
-  remove(@Param('id') id: string) {
-    return this.menuService.remove(+id);
+  remove(@Param('id') id: string, @Req() request: Request) {
+    return this.menuService.remove(+id, request);
   }
 }
