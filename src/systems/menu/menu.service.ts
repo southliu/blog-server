@@ -67,19 +67,53 @@ export class MenuService {
     return result;
   }
 
-  private buildTree(
-    menus: MenuVo[],
-    parentId: number,
-    isAll = false,
-  ): MenuVo[] {
+  // 查看是否有查看权限
+  private hasView(menus: MenuVo[]) {
+    for (let i = 0; i < menus?.length; i++) {
+      const item = menus[i];
+      if (item.type < 2) return true;
+      const arr = item?.permission?.split('/');
+
+      if (arr?.length && arr[arr.length - 1] === 'index') {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  // 过滤没有查看权限的菜单
+  private filterViewMenu(menus: MenuVo[]) {
+    const tree: MenuVo[] = [];
+
+    for (let i = 0; i < menus?.length; i++) {
+      const item = menus[i];
+
+      if (item.type <= 2 && !item.children?.length) continue;
+
+      // 子数据是否有查看权限
+      if (item.children?.length) {
+        const hasView = this.hasView(item.children);
+        item.children = hasView
+          ? this.filterViewMenu(item.children)
+          : undefined;
+      }
+
+      tree.push(item);
+    }
+
+    // 排序
+    tree.sort((a, b) => a.sortNum - b.sortNum);
+
+    return tree;
+  }
+
+  private buildTree(menus: MenuVo[], parentId: number): MenuVo[] {
     const tree: MenuVo[] = [];
 
     for (const menu of menus) {
-      // 权限按钮不返回
-      if (!isAll && menu.type >= 2) return tree;
-
       if (menu.parentId === parentId) {
-        const children = this.buildTree(menus, menu.id, isAll);
+        const children = this.buildTree(menus, menu.id);
         if (children.length) {
           menu.children = children;
         }
@@ -156,7 +190,7 @@ export class MenuService {
   async findAll(request: Request, name: string) {
     const data = await this.getTokenInfo(request);
     const menus = await this.getMenu(data.userId);
-    const newMenus = this.buildTree(menus, null, true);
+    const newMenus = this.buildTree(menus, null);
 
     if (!name) return newMenus;
     return this.handleSearchList(newMenus, name);
@@ -165,7 +199,8 @@ export class MenuService {
   async findUserMenu(request: Request) {
     const data = await this.getTokenInfo(request);
     const menus = await this.getMenu(data.userId);
-    return this.buildTree(menus, null);
+    const allMenus = this.buildTree(menus, null);
+    return this.filterViewMenu(allMenus);
   }
 
   async findOne(id: number) {

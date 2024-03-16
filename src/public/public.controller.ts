@@ -14,7 +14,6 @@ import { LoginDto } from './dto/login.dto';
 import { EmailDto } from 'src/email/dto/email.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { UserService } from 'src/systems/user/user.service';
 import { RequireLogin } from 'src/base/decorator/custom.decorator';
 import { Request } from 'express';
 
@@ -25,9 +24,6 @@ export class PublicController {
 
   @Inject(ConfigService)
   private configService: ConfigService;
-
-  @Inject(UserService)
-  private userService: UserService;
 
   constructor(private readonly publicService: PublicService) {}
 
@@ -76,10 +72,5 @@ export class PublicController {
     } catch (e) {
       throw new UnauthorizedException('token 已失效，请重新登录');
     }
-  }
-
-  @Get('init-data')
-  async initData() {
-    return this.publicService.initData();
   }
 }
