@@ -32,12 +32,9 @@ export class Permission {
   description: string;
 
   @ManyToMany(() => Role, (roles) => roles.permissions)
-  @JoinTable({
-    name: 'role_permissions',
-  })
   roles: Role[];
 
-  @ManyToMany(() => Menu)
+  @ManyToMany(() => Menu, (menu) => menu.permissions)
   @JoinTable({
     name: 'permission_menus',
   })

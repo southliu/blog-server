@@ -3,9 +3,9 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
   ManyToMany,
   PrimaryGeneratedColumn,
+  Tree,
   TreeChildren,
   TreeParent,
   UpdateDateColumn,
@@ -14,6 +14,7 @@ import {
 @Entity({
   name: 'menus',
 })
+@Tree('materialized-path')
 export class Menu {
   @PrimaryGeneratedColumn()
   id: number;
@@ -68,8 +69,5 @@ export class Menu {
   parent: Menu;
 
   @ManyToMany(() => Permission, (permissions) => permissions.menus)
-  @JoinTable({
-    name: 'permission_menus',
-  })
   permissions: Permission[];
 }

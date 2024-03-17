@@ -304,17 +304,46 @@ export class MenuService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: number, request: Request) {
     try {
-      const findMenu = await this.menuRepository.findOne({
+      const roles = await this.getRoles(request);
+      if (!roles?.length) throw '获取角色数据失败';
+
+      const findMenu = await this.entityManager.findOne(Menu, {
         where: { id },
         relations: ['permissions'],
       });
       if (!findMenu?.permissions?.length) throw '当前菜单不存在或已删除';
-      if (findMenu.permissions?.[0]?.id) {
-        await this.permissionRepository.delete(findMenu.permissions?.[0]?.id);
+
+      const parent = await this.entityManager.findOne(Menu, {
+        where: { id },
+      });
+
+      const findChildren = await this.entityManager
+        .getTreeRepository(Menu)
+        .findDescendantsTree(parent);
+
+      if (findChildren?.children?.length) {
+        throw '子数据的数据未清空，不可删除';
       }
+
+      const permissionId = findMenu.permissions?.[0]?.id;
+
+      for (let i = 0; i < roles?.length; i++) {
+        const item = roles[i];
+        const index = item.permissions?.findIndex(
+          (item) => item.id === permissionId,
+        );
+        if (index !== -1) item.permissions?.splice(index, 1);
+      }
+      await this.roleRepository.save(roles);
+
+      if (permissionId) {
+        await this.permissionRepository.delete(permissionId);
+      }
+
       await this.menuRepository.delete(id);
+
       return '删除成功';
     } catch (e) {
       throw e || '删除失败，请稍后重试';
