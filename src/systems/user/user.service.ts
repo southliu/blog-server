@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectEntityManager } from '@nestjs/typeorm';
+import { EntityManager } from 'typeorm';
 import { User } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
-  @InjectRepository(User)
-  private userRepository: Repository<User>;
+  @InjectEntityManager()
+  entityManager: EntityManager;
 
   create(createUserDto: CreateUserDto) {
     console.log('createUserDto:', createUserDto);
@@ -24,7 +24,7 @@ export class UserService {
   }
 
   async findUserById(userId: number, isAdmin?: boolean) {
-    const user = await this.userRepository.findOne({
+    const user = await this.entityManager.findOne(User, {
       where: {
         id: userId,
         isAdmin: isAdmin ?? false,

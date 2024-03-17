@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
-import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { InjectEntityManager } from '@nestjs/typeorm';
+import { EntityManager } from 'typeorm';
 import { User } from 'src/systems/user/entities/user.entity';
 import { Menu } from './entities/menu.entity';
 import { MenuVo } from './vo/menu.vo';
@@ -16,20 +16,8 @@ export class MenuService {
   @Inject(JwtService)
   private jwtService: JwtService;
 
-  @InjectRepository(User)
-  private userRepository: Repository<User>;
-
-  @InjectRepository(Role)
-  private roleRepository: Repository<Role>;
-
-  @InjectRepository(Menu)
-  private menuRepository: Repository<Menu>;
-
   @InjectEntityManager()
   entityManager: EntityManager;
-
-  @InjectRepository(Permission)
-  private permissionRepository: Repository<Permission>;
 
   /** 获取token信息 */
   private async getTokenInfo(request: Request) {
@@ -44,7 +32,7 @@ export class MenuService {
     const result: Role[] = [];
     const tokenInfo = await this.getTokenInfo(request);
 
-    const user = await this.userRepository.findOne({
+    const user = await this.entityManager.findOne(User, {
       where: {
         id: tokenInfo.userId,
       },
@@ -54,7 +42,7 @@ export class MenuService {
     for (let i = 0; i < user.roles?.length; i++) {
       const item = user.roles[i];
 
-      const role = await this.roleRepository.findOne({
+      const role = await this.entityManager.findOne(Role, {
         where: {
           id: item.id,
         },
@@ -128,7 +116,7 @@ export class MenuService {
   }
 
   private async getMenu(userId: number) {
-    const findUser = await this.userRepository.findOne({
+    const findUser = await this.entityManager.findOne(User, {
       where: {
         id: userId,
       },
@@ -205,7 +193,7 @@ export class MenuService {
 
   async findOne(id: number) {
     try {
-      const findMenu = await this.menuRepository.findOne({
+      const findMenu = await this.entityManager.findOne(Menu, {
         where: {
           id,
         },
@@ -245,7 +233,7 @@ export class MenuService {
       const parentId = Number(createMenuDto.parentId);
 
       if (parentId) {
-        const parent = await this.menuRepository.findOne({
+        const parent = await this.entityManager.findOne(Menu, {
           where: {
             id: parentId,
           },
@@ -264,9 +252,9 @@ export class MenuService {
       }
 
       permission.menus = [menu];
-      await this.menuRepository.save(menu);
-      await this.permissionRepository.save(permission);
-      await this.roleRepository.save(roles);
+      await this.entityManager.save(Menu, menu);
+      await this.entityManager.save(Permission, permission);
+      await this.entityManager.save(Role, roles);
 
       return roles;
     } catch (e) {
@@ -280,14 +268,14 @@ export class MenuService {
         throw '权限字段过长';
       }
 
-      const findMenu = await this.menuRepository.findOne({
+      const findMenu = await this.entityManager.findOne(Menu, {
         where: {
           id,
         },
         relations: ['permissions'],
       });
 
-      await this.menuRepository.save({
+      await this.entityManager.save(Menu, {
         ...updateMenuDto,
         id,
       });
@@ -295,7 +283,7 @@ export class MenuService {
       for (let i = 0; i < findMenu.permissions?.length; i++) {
         const item = findMenu.permissions[i];
         item.code = updateMenuDto.permission;
-        await this.permissionRepository.save(item);
+        await this.entityManager.save(Permission, item);
       }
 
       return '编辑成功';
@@ -336,13 +324,13 @@ export class MenuService {
         );
         if (index !== -1) item.permissions?.splice(index, 1);
       }
-      await this.roleRepository.save(roles);
+      await this.entityManager.save(Role, roles);
 
       if (permissionId) {
-        await this.permissionRepository.delete(permissionId);
+        await this.entityManager.delete(Permission, permissionId);
       }
 
-      await this.menuRepository.delete(id);
+      await this.entityManager.delete(Menu, id);
 
       return '删除成功';
     } catch (e) {
