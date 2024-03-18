@@ -1,71 +1,27 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
-import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { InjectEntityManager } from '@nestjs/typeorm';
+import { EntityManager } from 'typeorm';
 import { User } from 'src/systems/user/entities/user.entity';
 import { Menu } from './entities/menu.entity';
 import { MenuVo } from './vo/menu.vo';
 import { Permission } from 'src/systems/permission/entities/permission.entity';
 import { Request } from 'express';
-import { JwtService } from '@nestjs/jwt';
 import { Role } from 'src/systems/role/entities/role.entity';
+import { UserService } from '../user/user.service';
+import { RoleService } from '../role/role.service';
 
 @Injectable()
 export class MenuService {
-  @Inject(JwtService)
-  private jwtService: JwtService;
+  @Inject(UserService)
+  userService: UserService;
 
-  @InjectRepository(User)
-  private userRepository: Repository<User>;
-
-  @InjectRepository(Role)
-  private roleRepository: Repository<Role>;
-
-  @InjectRepository(Menu)
-  private menuRepository: Repository<Menu>;
+  @Inject(RoleService)
+  roleService: RoleService;
 
   @InjectEntityManager()
   entityManager: EntityManager;
-
-  @InjectRepository(Permission)
-  private permissionRepository: Repository<Permission>;
-
-  /** 获取token信息 */
-  private async getTokenInfo(request: Request) {
-    const authorization = request.headers?.authorization;
-    const token = authorization?.split(' ')?.[1];
-    const data = this.jwtService.verify(token);
-    return data;
-  }
-
-  /** 获取角色 */
-  async getRoles(request: Request) {
-    const result: Role[] = [];
-    const tokenInfo = await this.getTokenInfo(request);
-
-    const user = await this.userRepository.findOne({
-      where: {
-        id: tokenInfo.userId,
-      },
-      relations: ['roles'],
-    });
-
-    for (let i = 0; i < user.roles?.length; i++) {
-      const item = user.roles[i];
-
-      const role = await this.roleRepository.findOne({
-        where: {
-          id: item.id,
-        },
-        relations: ['permissions'],
-      });
-
-      if (role) result.push(role);
-    }
-
-    return result;
-  }
 
   // 查看是否有查看权限
   private hasView(menus: MenuVo[]) {
@@ -128,7 +84,7 @@ export class MenuService {
   }
 
   private async getMenu(userId: number) {
-    const findUser = await this.userRepository.findOne({
+    const findUser = await this.entityManager.findOne(User, {
       where: {
         id: userId,
       },
@@ -188,8 +144,8 @@ export class MenuService {
   }
 
   async findAll(request: Request, name: string) {
-    const data = await this.getTokenInfo(request);
-    const menus = await this.getMenu(data.userId);
+    const userId = await this.userService.getUserId(request);
+    const menus = await this.getMenu(userId);
     const newMenus = this.buildTree(menus, null);
 
     if (!name) return newMenus;
@@ -197,15 +153,15 @@ export class MenuService {
   }
 
   async findUserMenu(request: Request) {
-    const data = await this.getTokenInfo(request);
-    const menus = await this.getMenu(data.userId);
+    const userId = await this.userService.getUserId(request);
+    const menus = await this.getMenu(userId);
     const allMenus = this.buildTree(menus, null);
     return this.filterViewMenu(allMenus);
   }
 
   async findOne(id: number) {
     try {
-      const findMenu = await this.menuRepository.findOne({
+      const findMenu = await this.entityManager.findOne(Menu, {
         where: {
           id,
         },
@@ -232,9 +188,6 @@ export class MenuService {
 
   async create(createMenuDto: CreateMenuDto, request: Request) {
     try {
-      const roles = await this.getRoles(request);
-      if (!roles?.length) throw '获取角色数据失败';
-
       const menu = new Menu();
       menu.name = createMenuDto.name;
       menu.route = createMenuDto.route;
@@ -245,7 +198,7 @@ export class MenuService {
       const parentId = Number(createMenuDto.parentId);
 
       if (parentId) {
-        const parent = await this.menuRepository.findOne({
+        const parent = await this.entityManager.findOne(Menu, {
           where: {
             id: parentId,
           },
@@ -258,17 +211,22 @@ export class MenuService {
       permission.code = createMenuDto.permission;
       permission.description = createMenuDto.name;
 
-      for (let i = 0; i < roles?.length; i++) {
-        const item = roles[i];
-        item.permissions.push(permission);
-      }
+      return await this.entityManager.transaction(async (entityManager) => {
+        const roles = await this.roleService.getRoles(request);
+        if (!roles?.length) throw '获取角色数据失败';
 
-      permission.menus = [menu];
-      await this.menuRepository.save(menu);
-      await this.permissionRepository.save(permission);
-      await this.roleRepository.save(roles);
+        for (let i = 0; i < roles?.length; i++) {
+          const item = roles[i];
+          item.permissions.push(permission);
+        }
 
-      return roles;
+        permission.menus = [menu];
+        await entityManager.save(Menu, menu);
+        await entityManager.save(Permission, permission);
+        await entityManager.save(Role, roles);
+
+        return '新增成功';
+      });
     } catch (e) {
       throw e || '新增失败';
     }
@@ -280,14 +238,14 @@ export class MenuService {
         throw '权限字段过长';
       }
 
-      const findMenu = await this.menuRepository.findOne({
+      const findMenu = await this.entityManager.findOne(Menu, {
         where: {
           id,
         },
         relations: ['permissions'],
       });
 
-      await this.menuRepository.save({
+      await this.entityManager.save(Menu, {
         ...updateMenuDto,
         id,
       });
@@ -295,7 +253,7 @@ export class MenuService {
       for (let i = 0; i < findMenu.permissions?.length; i++) {
         const item = findMenu.permissions[i];
         item.code = updateMenuDto.permission;
-        await this.permissionRepository.save(item);
+        await this.entityManager.save(Permission, item);
       }
 
       return '编辑成功';
@@ -306,7 +264,7 @@ export class MenuService {
 
   async remove(id: number, request: Request) {
     try {
-      const roles = await this.getRoles(request);
+      const roles = await this.roleService.getRoles(request);
       if (!roles?.length) throw '获取角色数据失败';
 
       const findMenu = await this.entityManager.findOne(Menu, {
@@ -336,13 +294,13 @@ export class MenuService {
         );
         if (index !== -1) item.permissions?.splice(index, 1);
       }
-      await this.roleRepository.save(roles);
+      await this.entityManager.save(Role, roles);
 
       if (permissionId) {
-        await this.permissionRepository.delete(permissionId);
+        await this.entityManager.delete(Permission, permissionId);
       }
 
-      await this.menuRepository.delete(id);
+      await this.entityManager.delete(Menu, id);
 
       return '删除成功';
     } catch (e) {

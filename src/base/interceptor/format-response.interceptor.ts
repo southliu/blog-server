@@ -12,6 +12,7 @@ import { BaseException } from 'src/utils/exception';
 
 interface ErrorData {
   response: string;
+  message: string;
   stack: string;
 }
 
@@ -36,7 +37,8 @@ export class FormatResponseInterceptor implements NestInterceptor {
         };
       }),
       catchError((err: ErrorData) => {
-        this.logger.error(err.response || err, err.stack);
+        const errMsg = err.message || err.response || err;
+        this.logger.error(errMsg, err.stack);
 
         // 邮箱处理
         if (
@@ -51,11 +53,7 @@ export class FormatResponseInterceptor implements NestInterceptor {
         }
 
         return throwError(
-          () =>
-            new BaseException(
-              err.response || err,
-              HttpStatus.INTERNAL_SERVER_ERROR,
-            ),
+          () => new BaseException(errMsg, HttpStatus.INTERNAL_SERVER_ERROR),
         );
       }),
     );
