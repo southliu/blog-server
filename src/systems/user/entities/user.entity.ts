@@ -29,7 +29,6 @@ export class User {
   password: string;
 
   @Column({
-    name: 'nick_name',
     length: 50,
     comment: '昵称',
   })
@@ -74,8 +73,6 @@ export class User {
   updateTime: Date;
 
   @ManyToMany(() => Role, (role) => role.users)
-  @JoinTable({
-    name: 'user_roles',
-  })
+  @JoinTable()
   roles: Role[];
 }

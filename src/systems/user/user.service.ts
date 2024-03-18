@@ -1,12 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
 import { User } from './entities/user.entity';
+import { Request } from 'express';
+import { JwtService } from '@nestjs/jwt';
+import { PageUserDto } from './dto/page-user.dto';
 
 @Injectable()
 export class UserService {
+  @Inject(JwtService)
+  private jwtService: JwtService;
+
   @InjectEntityManager()
   entityManager: EntityManager;
 
@@ -15,12 +21,20 @@ export class UserService {
     return 'This action adds a new user';
   }
 
-  findAll() {
-    return `This action returns all user`;
+  findPage(pageUserDto: PageUserDto) {
+    return pageUserDto;
   }
 
   findOne(id: number) {
     return `This action returns a #${id} user`;
+  }
+
+  async getUserId(request: Request) {
+    const authorization = request.headers?.authorization;
+    const token = authorization?.split(' ')?.[1];
+    const data = this.jwtService.verify(token);
+    if (!data.userId) throw '获取用户信息失败';
+    return data.userId;
   }
 
   async findUserById(userId: number, isAdmin?: boolean) {

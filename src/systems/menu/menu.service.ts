@@ -8,52 +8,20 @@ import { Menu } from './entities/menu.entity';
 import { MenuVo } from './vo/menu.vo';
 import { Permission } from 'src/systems/permission/entities/permission.entity';
 import { Request } from 'express';
-import { JwtService } from '@nestjs/jwt';
 import { Role } from 'src/systems/role/entities/role.entity';
+import { UserService } from '../user/user.service';
+import { RoleService } from '../role/role.service';
 
 @Injectable()
 export class MenuService {
-  @Inject(JwtService)
-  private jwtService: JwtService;
+  @Inject(UserService)
+  userService: UserService;
+
+  @Inject(RoleService)
+  roleService: RoleService;
 
   @InjectEntityManager()
   entityManager: EntityManager;
-
-  /** 获取token信息 */
-  private async getTokenInfo(request: Request) {
-    const authorization = request.headers?.authorization;
-    const token = authorization?.split(' ')?.[1];
-    const data = this.jwtService.verify(token);
-    return data;
-  }
-
-  /** 获取角色 */
-  async getRoles(request: Request) {
-    const result: Role[] = [];
-    const tokenInfo = await this.getTokenInfo(request);
-
-    const user = await this.entityManager.findOne(User, {
-      where: {
-        id: tokenInfo.userId,
-      },
-      relations: ['roles'],
-    });
-
-    for (let i = 0; i < user.roles?.length; i++) {
-      const item = user.roles[i];
-
-      const role = await this.entityManager.findOne(Role, {
-        where: {
-          id: item.id,
-        },
-        relations: ['permissions'],
-      });
-
-      if (role) result.push(role);
-    }
-
-    return result;
-  }
 
   // 查看是否有查看权限
   private hasView(menus: MenuVo[]) {
@@ -176,8 +144,8 @@ export class MenuService {
   }
 
   async findAll(request: Request, name: string) {
-    const data = await this.getTokenInfo(request);
-    const menus = await this.getMenu(data.userId);
+    const userId = await this.userService.getUserId(request);
+    const menus = await this.getMenu(userId);
     const newMenus = this.buildTree(menus, null);
 
     if (!name) return newMenus;
@@ -185,8 +153,8 @@ export class MenuService {
   }
 
   async findUserMenu(request: Request) {
-    const data = await this.getTokenInfo(request);
-    const menus = await this.getMenu(data.userId);
+    const userId = await this.userService.getUserId(request);
+    const menus = await this.getMenu(userId);
     const allMenus = this.buildTree(menus, null);
     return this.filterViewMenu(allMenus);
   }
@@ -220,9 +188,6 @@ export class MenuService {
 
   async create(createMenuDto: CreateMenuDto, request: Request) {
     try {
-      const roles = await this.getRoles(request);
-      if (!roles?.length) throw '获取角色数据失败';
-
       const menu = new Menu();
       menu.name = createMenuDto.name;
       menu.route = createMenuDto.route;
@@ -246,17 +211,22 @@ export class MenuService {
       permission.code = createMenuDto.permission;
       permission.description = createMenuDto.name;
 
-      for (let i = 0; i < roles?.length; i++) {
-        const item = roles[i];
-        item.permissions.push(permission);
-      }
+      return await this.entityManager.transaction(async (entityManager) => {
+        const roles = await this.roleService.getRoles(request);
+        if (!roles?.length) throw '获取角色数据失败';
 
-      permission.menus = [menu];
-      await this.entityManager.save(Menu, menu);
-      await this.entityManager.save(Permission, permission);
-      await this.entityManager.save(Role, roles);
+        for (let i = 0; i < roles?.length; i++) {
+          const item = roles[i];
+          item.permissions.push(permission);
+        }
 
-      return roles;
+        permission.menus = [menu];
+        await entityManager.save(Menu, menu);
+        await entityManager.save(Permission, permission);
+        await entityManager.save(Role, roles);
+
+        return '新增成功';
+      });
     } catch (e) {
       throw e || '新增失败';
     }
@@ -294,7 +264,7 @@ export class MenuService {
 
   async remove(id: number, request: Request) {
     try {
-      const roles = await this.getRoles(request);
+      const roles = await this.roleService.getRoles(request);
       if (!roles?.length) throw '获取角色数据失败';
 
       const findMenu = await this.entityManager.findOne(Menu, {
