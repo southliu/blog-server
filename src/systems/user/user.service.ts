@@ -7,6 +7,7 @@ import { User } from './entities/user.entity';
 import { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { PageUserDto } from './dto/page-user.dto';
+import { PageUserVo } from './vo/page-user.vo';
 
 @Injectable()
 export class UserService {
@@ -21,8 +22,37 @@ export class UserService {
     return 'This action adds a new user';
   }
 
-  findPage(pageUserDto: PageUserDto) {
-    return pageUserDto;
+  async findPage(pageDto: PageUserDto) {
+    const { page, pageSize } = pageDto;
+    const skipCount = (page - 1) * pageSize;
+    const params = { ...pageDto };
+    params.page = undefined;
+    params.pageSize = undefined;
+
+    const [record, total] = await this.entityManager.findAndCount(User, {
+      where: {
+        ...params,
+      },
+      skip: skipCount,
+      take: pageSize,
+      relations: ['roles'],
+    });
+
+    const items: PageUserVo[] = [];
+
+    for (let i = 0; i < record?.length; i++) {
+      const item = record[i];
+      items.push({
+        ...item,
+        status: !item.isFrozen,
+        roleName: item.roles.map((role) => role.name).join(','),
+      });
+    }
+
+    return {
+      items,
+      total,
+    };
   }
 
   findOne(id: number) {

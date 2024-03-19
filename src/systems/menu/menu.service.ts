@@ -12,6 +12,9 @@ import { Role } from 'src/systems/role/entities/role.entity';
 import { UserService } from '../user/user.service';
 import { RoleService } from '../role/role.service';
 
+// TODO: 优化定时清除
+const permissionMap: Map<number, Permission[]> = new Map();
+
 @Injectable()
 export class MenuService {
   @Inject(UserService)
@@ -212,17 +215,33 @@ export class MenuService {
       permission.description = createMenuDto.name;
 
       return await this.entityManager.transaction(async (entityManager) => {
+        const userId = await this.userService.getUserId(request);
         const roles = await this.roleService.getRoles(request);
         if (!roles?.length) throw '获取角色数据失败';
 
-        for (let i = 0; i < roles?.length; i++) {
-          const item = roles[i];
-          item.permissions.push(permission);
-        }
-
         permission.menus = [menu];
         await entityManager.save(Menu, menu);
-        await entityManager.save(Permission, permission);
+        const newPermission = await entityManager.save(Permission, permission);
+
+        const hasRoles = permissionMap.has(userId);
+
+        if (!hasRoles) {
+          permissionMap.set(userId, [newPermission]);
+        }
+
+        const oldPermissionMap = permissionMap.get(userId);
+        oldPermissionMap.push(newPermission);
+        permissionMap.set(userId, oldPermissionMap);
+
+        for (let i = 0; i < roles?.length; i++) {
+          const item = roles[i];
+
+          const hasPermission = oldPermissionMap.find(
+            (permission) => permission.id === item.id,
+          );
+          if (!hasPermission) item.permissions.push(permission);
+        }
+
         await entityManager.save(Role, roles);
 
         return '新增成功';
@@ -253,6 +272,7 @@ export class MenuService {
       for (let i = 0; i < findMenu.permissions?.length; i++) {
         const item = findMenu.permissions[i];
         item.code = updateMenuDto.permission;
+        item.description = updateMenuDto.name;
         await this.entityManager.save(Permission, item);
       }
 
@@ -264,7 +284,7 @@ export class MenuService {
 
   async remove(id: number, request: Request) {
     try {
-      const roles = await this.roleService.getRoles(request);
+      const roles: Role[] = await this.roleService.getRoles(request);
       if (!roles?.length) throw '获取角色数据失败';
 
       const findMenu = await this.entityManager.findOne(Menu, {

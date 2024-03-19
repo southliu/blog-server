@@ -1,6 +1,7 @@
+export class CreateRoleDto {}
 import { PageDto } from 'src/base/dto/page.dto';
 
-export class PageUserDto extends PageDto {
+export class PageRoleDto extends PageDto {
   name: string;
   phone: string;
   email: string;
