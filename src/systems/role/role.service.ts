@@ -7,6 +7,7 @@ import { Request } from 'express';
 import { Role } from './entities/role.entity';
 import { User } from '../user/entities/user.entity';
 import { UserService } from '../user/user.service';
+import { PageRoleDto } from './dto/page-role.dto';
 
 @Injectable()
 export class RoleService {
@@ -21,8 +22,30 @@ export class RoleService {
     return 'This action adds a new role';
   }
 
-  findAll() {
-    return `This action returns all role`;
+  async findAll() {
+    const result = await this.entityManager.find(Role);
+    return result;
+  }
+
+  async findPage(pageDto: PageRoleDto) {
+    const { page, pageSize } = pageDto;
+    const skipCount = (page - 1) * pageSize;
+    const params = { ...pageDto };
+    params.page = undefined;
+    params.pageSize = undefined;
+
+    const [items, total] = await this.entityManager.findAndCount(Role, {
+      where: {
+        ...params,
+      },
+      skip: skipCount,
+      take: pageSize,
+    });
+
+    return {
+      items,
+      total,
+    };
   }
 
   findOne(id: number) {
@@ -30,7 +53,7 @@ export class RoleService {
   }
 
   /** 获取角色 */
-  async getRoles(request: Request) {
+  async getRoles(request: Request): Promise<Role[]> {
     const result: Role[] = [];
     const userId = await this.userService.getUserId(request);
 

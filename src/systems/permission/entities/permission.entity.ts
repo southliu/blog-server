@@ -36,7 +36,7 @@ export class Permission {
 
   @ManyToMany(() => Menu, (menu) => menu.permissions)
   @JoinTable({
-    name: 'permission_menus',
+    name: 'permissions_menus',
   })
   menus: Menu[];
 }
