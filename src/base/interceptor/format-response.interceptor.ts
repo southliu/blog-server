@@ -32,7 +32,7 @@ export class FormatResponseInterceptor implements NestInterceptor {
       map((data) => {
         return {
           code: statusCode,
-          message: 'success',
+          message: typeof data === 'string' ? data : 'success',
           data,
         };
       }),

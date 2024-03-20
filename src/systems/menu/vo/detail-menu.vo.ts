@@ -1,4 +1,4 @@
-export interface MenuVo {
+export interface DetailMenuVo {
   id: number;
   name: string;
   route?: string;
@@ -8,5 +8,5 @@ export interface MenuVo {
   type: number;
   permission: string;
   parentId?: number;
-  children?: MenuVo[];
+  children?: DetailMenuVo[];
 }

@@ -37,6 +37,8 @@ export class User {
   @Column({
     comment: '邮箱',
     length: 50,
+    nullable: true,
+    default: '',
   })
   email: string;
 
@@ -44,6 +46,7 @@ export class User {
     comment: '头像',
     length: 100,
     nullable: true,
+    default: '',
   })
   avatar: string;
 
@@ -51,6 +54,7 @@ export class User {
     comment: '手机号',
     length: 20,
     nullable: true,
+    default: '',
   })
   phone: string;
 

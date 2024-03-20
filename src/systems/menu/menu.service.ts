@@ -5,7 +5,7 @@ import { InjectEntityManager } from '@nestjs/typeorm';
 import { EntityManager } from 'typeorm';
 import { User } from 'src/systems/user/entities/user.entity';
 import { Menu } from './entities/menu.entity';
-import { MenuVo } from './vo/menu.vo';
+import { DetailMenuVo } from './vo/detail-menu.vo';
 import { Permission } from 'src/systems/permission/entities/permission.entity';
 import { Request } from 'express';
 import { Role } from 'src/systems/role/entities/role.entity';
@@ -27,7 +27,7 @@ export class MenuService {
   entityManager: EntityManager;
 
   // 查看是否有查看权限
-  private hasView(menus: MenuVo[]) {
+  private hasView(menus: DetailMenuVo[]) {
     for (let i = 0; i < menus?.length; i++) {
       const item = menus[i];
       if (item.type < 2) return true;
@@ -42,8 +42,8 @@ export class MenuService {
   }
 
   // 过滤没有查看权限的菜单
-  private filterViewMenu(menus: MenuVo[]) {
-    const tree: MenuVo[] = [];
+  private filterViewMenu(menus: DetailMenuVo[]) {
+    const tree: DetailMenuVo[] = [];
 
     for (let i = 0; i < menus?.length; i++) {
       const item = menus[i];
@@ -67,8 +67,8 @@ export class MenuService {
     return tree;
   }
 
-  private buildTree(menus: MenuVo[], parentId: number): MenuVo[] {
-    const tree: MenuVo[] = [];
+  private buildTree(menus: DetailMenuVo[], parentId: number): DetailMenuVo[] {
+    const tree: DetailMenuVo[] = [];
 
     for (const menu of menus) {
       if (menu.parentId === parentId) {
@@ -98,7 +98,7 @@ export class MenuService {
       ],
     });
 
-    const menus: MenuVo[] = [];
+    const menus: DetailMenuVo[] = [];
 
     for (let i = 0; i < findUser.roles?.length; i++) {
       for (let j = 0; j < findUser.roles[i]?.permissions?.length; j++) {
@@ -126,8 +126,8 @@ export class MenuService {
     return menus;
   }
 
-  private handleSearchList(menu: MenuVo[], name: string) {
-    const result: MenuVo[] = [];
+  private handleSearchList(menu: DetailMenuVo[], name: string) {
+    const result: DetailMenuVo[] = [];
 
     for (let i = 0; i < menu.length; i++) {
       const item = menu[i];
@@ -171,7 +171,7 @@ export class MenuService {
         relations: ['permissions'],
       });
 
-      const menuVo: MenuVo = {
+      const DetailMenuVo: DetailMenuVo = {
         id: findMenu.id,
         name: findMenu.name,
         route: findMenu.route,
@@ -183,7 +183,7 @@ export class MenuService {
         permission: findMenu.permissions?.map((item) => item.code)?.join(','),
       };
 
-      return menuVo;
+      return DetailMenuVo;
     } catch (e) {
       throw e || '获取详情失败';
     }
@@ -214,38 +214,39 @@ export class MenuService {
       permission.code = createMenuDto.permission;
       permission.description = createMenuDto.name;
 
-      return await this.entityManager.transaction(async (entityManager) => {
-        const userId = await this.userService.getUserId(request);
-        const roles = await this.roleService.getRoles(request);
-        if (!roles?.length) throw '获取角色数据失败';
+      const userId = await this.userService.getUserId(request);
+      const roles = await this.roleService.getRoles(request);
+      if (!roles?.length) throw '获取角色数据失败';
 
-        permission.menus = [menu];
-        await entityManager.save(Menu, menu);
-        const newPermission = await entityManager.save(Permission, permission);
+      permission.menus = [menu];
+      await this.entityManager.save(Menu, menu);
+      const newPermission = await this.entityManager.save(
+        Permission,
+        permission,
+      );
 
-        const hasRoles = permissionMap.has(userId);
+      const hasRoles = permissionMap.has(userId);
 
-        if (!hasRoles) {
-          permissionMap.set(userId, [newPermission]);
-        }
+      if (!hasRoles) {
+        permissionMap.set(userId, [newPermission]);
+      }
 
-        const oldPermissionMap = permissionMap.get(userId);
-        oldPermissionMap.push(newPermission);
-        permissionMap.set(userId, oldPermissionMap);
+      const oldPermissionMap = permissionMap.get(userId);
+      oldPermissionMap.push(newPermission);
+      permissionMap.set(userId, oldPermissionMap);
 
-        for (let i = 0; i < roles?.length; i++) {
-          const item = roles[i];
+      for (let i = 0; i < roles?.length; i++) {
+        const item = roles[i];
 
-          const hasPermission = oldPermissionMap.find(
-            (permission) => permission.id === item.id,
-          );
-          if (!hasPermission) item.permissions.push(permission);
-        }
+        const hasPermission = oldPermissionMap.find(
+          (permission) => permission.id === item.id,
+        );
+        if (!hasPermission) item.permissions.push(permission);
+      }
 
-        await entityManager.save(Role, roles);
+      await this.entityManager.save(Role, roles);
 
-        return '新增成功';
-      });
+      return '新增成功';
     } catch (e) {
       throw e || '新增失败';
     }
