@@ -1,0 +1,60 @@
+{
+  "createFn": {
+    "scope": "typescript",
+    "prefix": "createFn",
+    "body": [
+      "try {",
+      "  await this.entityManager.save($1, createDto);",
+      "  return '新增成功';",
+      "} catch (e) {",
+      "  throw e || '新增失败';",
+      "}"
+    ]
+  },
+  "detailFn": {
+    "scope": "typescript",
+    "prefix": "detailFn",
+    "body": [
+      "  try {",
+      "    const findCurrent = await this.entityManager.findOne($1, {",
+      "      where: {",
+      "        id,",
+      "      },",
+      "    });",
+      "",
+      "    return findCurrent;",
+      "  } catch (e) {",
+      "    throw e || '获取详情失败';",
+      "  }",
+    ]
+  },
+  "updateFn": {
+    "scope": "typescript",
+    "prefix": "updateFn",
+    "body": [
+      "try {",
+      "  await this.entityManager.save($1, updateDto);",
+      "  return '编辑成功';",
+      "} catch (e) {",
+      "  throw e || '编辑失败';",
+      "}"
+    ]
+  },
+  "deleteFn": {
+    "scope": "typescript",
+    "prefix": "deleteFn",
+    "body": [
+      "try {",
+      "  const findCurrent = await this.entityManager.findOne($1, {",
+      "    where: { id },",
+      "  });",
+      "  if (!findCurrent) throw '当前数据不存在或已删除';",
+      "",
+      "  await this.entityManager.delete($1, id);",
+      "  return '删除成功';",
+      "} catch (e) {",
+      "  throw e || '删除失败';",
+      "}"
+    ]
+  },
+}

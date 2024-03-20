@@ -17,9 +17,13 @@ export class RoleService {
   @InjectEntityManager()
   entityManager: EntityManager;
 
-  create(createRoleDto: CreateRoleDto) {
-    console.log('createRoleDto:', createRoleDto);
-    return 'This action adds a new role';
+  async create(createRoleDto: CreateRoleDto) {
+    try {
+      await this.entityManager.save(Role, createRoleDto);
+      return '新增成功';
+    } catch (e) {
+      throw e || '新增失败';
+    }
   }
 
   async findAll() {
@@ -48,8 +52,18 @@ export class RoleService {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} role`;
+  async findOne(id: number) {
+    try {
+      const findRole = await this.entityManager.findOne(Role, {
+        where: {
+          id,
+        },
+      });
+
+      return findRole;
+    } catch (e) {
+      throw e || '获取详情失败';
+    }
   }
 
   /** 获取角色 */
@@ -80,12 +94,29 @@ export class RoleService {
     return result;
   }
 
-  update(id: number, updateRoleDto: UpdateRoleDto) {
-    console.log('updateRoleDto:', updateRoleDto);
-    return `This action updates a #${id} role`;
+  async update(id: number, updateRoleDto: UpdateRoleDto) {
+    try {
+      await this.entityManager.save(Role, {
+        ...updateRoleDto,
+        id,
+      });
+      return '编辑成功';
+    } catch (e) {
+      throw e || '编辑失败';
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} role`;
+  async remove(id: number) {
+    try {
+      const findRole = await this.entityManager.findOne(Role, {
+        where: { id },
+      });
+      if (!findRole) throw '当前数据不存在或已删除';
+
+      await this.entityManager.delete(Role, id);
+      return '删除成功';
+    } catch (e) {
+      throw e || '删除失败';
+    }
   }
 }
