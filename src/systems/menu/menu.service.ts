@@ -11,9 +11,7 @@ import { Request } from 'express';
 import { Role } from 'src/systems/role/entities/role.entity';
 import { UserService } from '../user/user.service';
 import { RoleService } from '../role/role.service';
-
-// TODO: 优化定时清除
-const permissionMap: Map<number, Permission[]> = new Map();
+import { RedisService } from 'src/base/redis/redis.service';
 
 @Injectable()
 export class MenuService {
@@ -25,6 +23,9 @@ export class MenuService {
 
   @InjectEntityManager()
   entityManager: EntityManager;
+
+  @Inject(RedisService)
+  private redisService: RedisService;
 
   // 查看是否有查看权限
   private hasView(menus: DetailMenuVo[]) {
@@ -214,34 +215,19 @@ export class MenuService {
       permission.code = createMenuDto.permission;
       permission.description = createMenuDto.name;
 
-      const userId = await this.userService.getUserId(request);
+      // const userId = await this.userService.getUserId(request);
       const roles = await this.roleService.getRoles(request);
       if (!roles?.length) throw '获取角色数据失败';
 
       permission.menus = [menu];
       await this.entityManager.save(Menu, menu);
-      const newPermission = await this.entityManager.save(
-        Permission,
-        permission,
-      );
-
-      const hasRoles = permissionMap.has(userId);
-
-      if (!hasRoles) {
-        permissionMap.set(userId, [newPermission]);
-      }
-
-      const oldPermissionMap = permissionMap.get(userId);
-      oldPermissionMap.push(newPermission);
-      permissionMap.set(userId, oldPermissionMap);
 
       for (let i = 0; i < roles?.length; i++) {
-        const item = roles[i];
-
-        const hasPermission = oldPermissionMap.find(
-          (permission) => permission.id === item.id,
-        );
-        if (!hasPermission) item.permissions.push(permission);
+        // const item = roles[i];
+        // const hasPermission = oldPermissionMap.find(
+        //   (permission) => permission.id === item.id,
+        // );
+        // if (!hasPermission) item.permissions.push(permission);
       }
 
       await this.entityManager.save(Role, roles);

@@ -17,4 +17,16 @@ export class RedisService {
       await this.redisClient.expire(key, ttl);
     }
   }
+
+  async lPush(key: string, data: string, ttl?: number) {
+    await this.redisClient.lPush(key, data);
+
+    if (ttl) {
+      await this.redisClient.expire(key, ttl);
+    }
+  }
+
+  async lPop(key: string) {
+    return await this.redisClient.lPop(key);
+  }
 }
